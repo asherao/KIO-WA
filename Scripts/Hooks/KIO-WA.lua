@@ -40,6 +40,7 @@ local function loadBarundusUI()
     Future Goals:
     - Get the default window size dialed in
     - Change the default hotkey
+    - Show/Hide keybinds
     - Add more commands such as
     -- Orbit Left/Right
     -- Increase/Decrease speed
@@ -50,8 +51,25 @@ local function loadBarundusUI()
 
     - Aircraft Detection - When the player is not flying the Kiowa, the
     GUI is hidden
-    - Show/Hide keybinds
     - Compact vs Full mode with a toggle switch
+    - For the left/right options, you can set a toggle and then 
+    -- single button for each, eg
+    ------------
+    |Left/Right|
+    |🢀Orbit   |
+    |🢀Heading |
+    |🢀Hover   |
+    ------------
+    -- The direction of the arrow changes when "Left/Right" is clicked
+    -- This systems reduces the number of buttons from 6 to 4, not including 
+    -- another row/column for the labels. Overall, seems like a good idea.
+    ------------
+    |Left/Right| (shorten to L/R?)
+    |Orbit🢂   |
+    |Heading🢂 |
+    |Hover🢂   |
+    ------------
+    
     --]]
 
     local function log(str)
