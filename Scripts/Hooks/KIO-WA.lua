@@ -52,9 +52,6 @@ local function loadBarundusUI()
     GUI is hidden
     - Show/Hide keybinds
     - Compact vs Full mode with a toggle switch
-
-
-
     --]]
 
     local function log(str)
@@ -99,9 +96,9 @@ local function loadBarundusUI()
         else
             log("Configuration not found, creating defaults...")
             config = {
-                hotkey         = "Ctrl+Shift+F9", -- show/hide
-                windowPosition = { x = 200, y = 500 },
-                windowSize     = { w = 500, h = 500 },
+                hotkey         = "Ctrl+Shift+F9",       -- show/hide
+                windowPosition = { x = 1430, y = 754 }, -- these values were obtained by manually adjusting
+                windowSize     = { w = 344, h = 132 },  -- the window till I got something that looked ok
                 hideOnLaunch   = false,
                 --hotkeyStop     = "CCtrl+Shift+F10", -- just takin notes
             }
@@ -126,6 +123,7 @@ local function loadBarundusUI()
         panel:setBounds(0, 0, w, h - 20)
 
         -- resize for Walkman
+        -- can be adjusted for KIO-WA
         -- (xpos, ypos, width, height)
         --HeadingSlider:setBounds(0, row2, w, 25)
         --[[
@@ -178,11 +176,6 @@ local function loadBarundusUI()
         -- window.setVisible(false) -- if you make the window invisible, its destroyed
         isHidden = true
     end
-
-
-    --Export.GetDevice(deviceNumber):performClickableAction(CommandNumber, positionValue)
-    --Export.GetDevice(18):performClickableAction(3083, 1) -- this is the magic formula and how to use it :)
-
 
     local function createBarundusUIWindow()
         if window ~= nil then
@@ -273,7 +266,7 @@ local function loadBarundusUI()
 
         local function repeatTurn()
             --[[
-if SlideSlider:getValue() == 0 then
+                if SlideSlider:getValue() == 0 then
                     while SlideSlider:getValue() == 0 do
                         Export.GetDevice(18):performClickableAction(3103, -1) -- 1 happens to only do it a bit
                     end
@@ -284,10 +277,6 @@ if SlideSlider:getValue() == 0 then
                 end
                 --]]
         end
-
-
-        -- Repeat turn area
-
 
         function showAltitudeButtonValue()
             if AltitudeSlider:getValue() == 0 then
@@ -360,7 +349,7 @@ if SlideSlider:getValue() == 0 then
             Export.GetDevice(18):performClickableAction(commandButton, 1)
         end
 
-        --number from inputTable.lua
+        --numbers from inputTable.lua
         RouteButton:addMouseDownCallback(
             function(self)
                 AIpress(14)

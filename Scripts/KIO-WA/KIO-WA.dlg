@@ -1,7 +1,7 @@
 local buttonHeight = 20 -- 24
 local buttonWidth = 75
 
-local windowWidth = 300
+local windowWidth = 300 -- not used here
 
 
 local margin = 15 -- 0
@@ -507,7 +507,7 @@ dialog = {
                         ["text"] = "",
                         ["tooltip"] = "Course",
                         ["value"] = 1,
-                        ["visible"] = true,
+                        ["visible"] = false, -- WIP
                         ["zindex"] = 0,
                     },
                     ["skin"] = {
