@@ -71,6 +71,15 @@ local function loadBarundusUI()
     |Heading🢂 |
     |Hover🢂   |
     ------------
+
+    - Consider making course a directional wheel, similar to the wind wheel that
+    you can see in the mission editor (SpinBox). Could make a toggle for relative vs
+    true up (or magnetic). Would have to get and round player heading for relatve.
+    - Make everything "modular" (good luck) so that ppl can pick which "modules"
+    they want to use. Would this feature go well in a Special Options menu? It is 
+    easy to make the modules, but having them tile properly may be the more difficult
+    issue to solve.
+    - Remove the margin gap at the top and sides of groups of buttons/controls
     
     --]]
 
