@@ -41,6 +41,8 @@ local function loadBarundusUI()
     - Get the default window size dialed in
     - Change the default hotkey
     - Show/Hide keybinds
+    - Make a minimum window size
+    - talk about the config file for adjustments
     - Add more commands such as
     -- Orbit Left/Right
     -- Increase/Decrease speed
