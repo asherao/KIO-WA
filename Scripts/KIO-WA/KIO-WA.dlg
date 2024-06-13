@@ -1,0 +1,547 @@
+local buttonHeight = 20 -- 24
+local buttonWidth = 75
+
+local windowWidth = 300
+
+
+local margin = 15 -- 0
+
+local columnSpacing = buttonWidth + 5
+local column1 = margin
+local column2 = columnSpacing + column1
+local column3 = columnSpacing + column2
+local column4 = columnSpacing + column3
+
+
+local rowSpacing = buttonHeight * 1.2
+local row1 = margin
+local row2 = rowSpacing + row1
+local row3 = rowSpacing + row2
+local row4 = rowSpacing + row3
+local row5 = rowSpacing + row4
+
+local sliderVertOffset = -6
+
+
+--[[
+  col1    col2     col3     col4
+-------------------------------------
+| PLAN |TAKEOFF |10,000ft|--Slider--|  row1
+|ROUTE |  HOVER |110 Kts |--Slider--|  row2
+| BARO |  LAND  |  123°  |--Slider--|  row3
+|RADALT| HDG2MMS|   HUD  |  ON/OFF  |  row4
+-------------------------------------
+]] --
+
+-- buttonSkinGraybNew
+-- buttonSkinAwacs
+
+dialog = {
+    ["type"] = "Window",
+    ["params"] = {
+        ["bounds"] = {
+            [1] = {
+                ["h"] = 500,
+                ["w"] = 500,
+                ["x"] = 0,
+                ["y"] = 0
+            }
+        },
+        ["draggable"] = true,
+        ["enabled"] = true,
+        ["hasCursor"] = true,
+        ["lockFlow"] = false,
+        ["modal"] = false,
+        ["offscreen"] = false,
+        ["resizable"] = true,
+        ["zOrder"] = 112,
+        ["text"] = "Kiowa Integrated Overlay - Warrior Automatis by Bailey"
+    },
+    ["skin"] = {
+        ["params"] = {
+            ["name"] = "windowSkin"
+        },
+        ["skins"] = {
+            ["header"] = {
+                ["skinData"] = {
+                    ["params"] = {
+                        ["hasCloseButton"] = false,
+                        ["insets"] = {
+                            ["bottom"] = 2,
+                            ["left"] = 2,
+                            ["right"] = 2,
+                            ["top"] = 2
+                        }
+                    },
+                    ["states"] = {
+                        ["released"] = {
+                            [1] = {
+                                ["bkg"] = {
+                                    ["center_center"] = "0x00000066"
+                                },
+                                ["text"] = {
+                                    ["color"] = "0xffffffaa"
+                                }
+                            },
+                            [2] = {
+                                ["bkg"] = {
+                                    ["center_center"] = "0x00000066"
+                                },
+                                ["text"] = {
+                                    ["color"] = "0xffffffaa"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        ["states"] = {
+            ["released"] = {
+                [1] = {
+                    ["bkg"] = {
+                        ["center_center"] = "0x00000000"
+                    }
+                }
+            }
+        }
+    },
+    ["children"] = {
+        ["Box"] = {
+            ["children"] = {
+                ------------------------------------------------
+                -- Kiowa Integrated Overlay - Warrior Automatis --
+                ------------------------------------------------
+
+                ["RouteButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column1,
+                            ["y"] = row2
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "ROUTE",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+
+
+                ["BaroButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column1,
+                            ["y"] = row3
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "BARO",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["RadaltButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column1,
+                            ["y"] = row4
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "RADALT",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["TakeoffButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column2,
+                            ["y"] = row1
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "TAKEOFF",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["HoverButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column2,
+                            ["y"] = row2
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "HOVER",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["LandButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column2,
+                            ["y"] = row3
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "LAND",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["AltitudeButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column3,
+                            ["y"] = row1
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "ALTITUDE",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["KnotsButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column3,
+                            ["y"] = row2
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "KNOTS",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["CourseButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column3,
+                            ["y"] = row3
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "COURSE",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["MmsButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column2,
+                            ["y"] = row4
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "HDG2MMS",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["FlightplanButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column1,
+                            ["y"] = row1
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "PLAN",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["HudButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column3,
+                            ["y"] = row4
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "HUD",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["OnoffButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column4,
+                            ["y"] = row4
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "ON/OFF",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGreenNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["CourseSlider"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = 24,
+                            ["w"] = buttonWidth,
+                            ["x"] = column4,
+                            ["y"] = row3 + sliderVertOffset,
+                        },
+                        ["enabled"] = true,
+                        ["pageStep"] = 1, -- the distance it goes when you click the bar instead of the knob
+                        ["range"] = {
+                            ["max"] = 35, -- divided by 10 for bug prevention
+                            ["min"] = 0,
+                        },
+                        ["step"] = 1, -- the possible selectable number step when you drag the slider
+                        ["tabOrder"] = 0,
+                        ["text"] = "",
+                        ["tooltip"] = "Course",
+                        ["value"] = 0,
+                        ["visible"] = true,
+                        ["zindex"] = 0,
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "horzSliderSkin_options",
+                        },
+                    },
+                    ["type"] = "HorzSlider",
+                },
+                ["KnotsSlider"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = 24,
+                            ["w"] = buttonWidth,
+                            ["x"] = column4,
+                            ["y"] = row2 + sliderVertOffset,
+                        },
+                        ["enabled"] = true,
+                        ["pageStep"] = 1, -- the distance it goes when you click the bar instead of the knob
+                        ["range"] = {
+                            ["max"] = 11, -- max is 110 knots
+                            ["min"] = 1,  -- starts at 10 knots
+                        },
+                        ["step"] = 1,     -- the possible selectable number step when you drag the slider
+                        ["tabOrder"] = 0,
+                        ["text"] = "",
+                        ["tooltip"] = "Knots",
+                        ["value"] = 1,
+                        ["visible"] = true,
+                        ["zindex"] = 0,
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "horzSliderSkin_options",
+                        },
+                    },
+                    ["type"] = "HorzSlider",
+                },
+                ["AltitudeSlider"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = 24,
+                            ["w"] = buttonWidth,
+                            ["x"] = column4,
+                            ["y"] = row1 + sliderVertOffset,
+                        },
+                        ["enabled"] = true,
+                        ["pageStep"] = 1, -- the distance it goes when you click the bar instead of the knob
+                        ["range"] = {
+                            ["max"] = 27, -- the number of altitude options is 28.
+                            ["min"] = 0,  -- the above is 27 because it is zero based for math reasons
+                        },
+                        ["step"] = 1,     -- the possible selectable number step when you drag the slider
+                        ["tabOrder"] = 0,
+                        ["text"] = "",
+                        ["tooltip"] = "Altitude",
+                        ["value"] = 0,
+                        ["visible"] = true,
+                        ["zindex"] = 0,
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "horzSliderSkin_options",
+                        },
+                    },
+                    ["type"] = "HorzSlider",
+                },
+                ["SlideSlider"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = 24,
+                            ["w"] = buttonWidth,
+                            ["x"] = column4,
+                            ["y"] = row5 + sliderVertOffset,
+                        },
+                        ["enabled"] = true,
+                        ["pageStep"] = 1, -- the distance it goes when you click the bar instead of the knob
+                        ["range"] = {
+                            ["max"] = 2,  -- divided by 10 for bug prevention
+                            ["min"] = 0,
+                        },
+                        ["step"] = 1, -- the possible selectable number step when you drag the slider
+                        ["tabOrder"] = 0,
+                        ["text"] = "",
+                        ["tooltip"] = "Course",
+                        ["value"] = 1,
+                        ["visible"] = true,
+                        ["zindex"] = 0,
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "horzSliderSkin_options",
+                        },
+                    },
+                    ["type"] = "HorzSlider",
+                },
+                ----------------------------------------------------
+                -- Kiowa Integrated Overlay - Warrior Automatis End --
+                ----------------------------------------------------
+            },
+            ["params"] = {
+                ["bounds"] = {
+                    [1] = {
+                        ["h"] = 500,
+                        ["w"] = 500,
+                        ["x"] = 0,
+                        ["y"] = 0
+                    }
+                },
+                ["enabled"] = true,
+                ["text"] = "",
+                ["tooltip"] = "",
+                ["visible"] = true,
+                ["zindex"] = 0
+            },
+            ["skin"] = {
+                ["params"] = {
+                    ["name"] = "panelSkin"
+                }
+            },
+            ["type"] = "Panel"
+        }
+    }
+}
