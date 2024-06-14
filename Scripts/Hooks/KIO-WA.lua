@@ -508,6 +508,7 @@ local function loadBarundusUI()
 
     local handler = {}
     function handler.onSimulationFrame()
+        aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
         if config == nil then
             loadConfiguration()
         end
