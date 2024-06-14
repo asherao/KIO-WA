@@ -26,6 +26,7 @@
     -- Baro and Radar can be 1 button
     -- can Plan and route be 1 button?
     -- may want to split on/off into 2 smaller buttons
+    -- research the possibility of using hardware buttons to toggle the GUI
 
     - Aircraft Detection - When the player is not flying the Kiowa, the
     GUI is hidden
