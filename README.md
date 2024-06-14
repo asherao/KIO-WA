@@ -3,7 +3,14 @@
 KIO-WA is an in-game clickable command overlay for the DCS OH-58D Kiowa Warrior that can use with your mouse or point device. 
 It also frees up keybinds and HOTAS buttons. Download the most recent stable release here [Releases](https://github.com/asherao/KIO-WA/releases).
 
+Old
+
 ![KIO-WA](https://github.com/asherao/KIO-WA/assets/15984377/68170b5a-1335-4257-a124-db878e170d7b)
+
+New
+
+![2024-06-14 14_28_44-DCS openbeta](https://github.com/asherao/KIO-WA/assets/15984377/16e58dcd-db43-441c-99a6-b8f3b3d1ed1e)
+
 
 I encourage adding your own innovations to this utility and sharing your creation and modifications with the community. 
 
