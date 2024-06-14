@@ -19,8 +19,10 @@ local row2 = rowSpacing + row1
 local row3 = rowSpacing + row2
 local row4 = rowSpacing + row3
 local row5 = rowSpacing + row4
+local row6 = rowSpacing + row5
 
 local sliderVertOffset = -6
+local dialHorzOffset = 20 -- centered offset concerning the left justification of the dial
 
 
 --[[
@@ -516,6 +518,167 @@ dialog = {
                         },
                     },
                     ["type"] = "HorzSlider",
+                },
+                ["CourseDial"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = 45,
+                            ["w"] = 45,
+                            ["x"] = column2 + dialHorzOffset,
+                            ["y"] = row5,
+                        },
+                        ["cyclic"] = true,
+                        ["enabled"] = true,
+                        ["pageStep"] = 10, -- default was 10
+                        ["range"] = {
+                            ["max"] = 360, -- default was 359
+                            ["min"] = 0,   -- default was 0
+                        },
+                        ["step"] = 10,     -- default was 1
+                        ["tabOrder"] = 0,
+                        ["text"] = "",
+                        ["tooltip"] = "",
+                        ["value"] = 0, -- default was 0
+                        ["visible"] = true,
+                        ["zindex"] = 0,
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "dialSkin_ME",
+                        },
+                        ["states"] = {
+                            ["disabled"] = {
+                                [1] = {
+                                    ["picture"] = {
+                                        ["color"] = "0xffffffff",
+                                        ["file"] = "dxgui\\skins\\skinme\\images\\m1\\elements\\dial_me.png",
+                                        ["horzAlign"] = {
+                                            ["offset"] = 0,
+                                            ["type"] = "middle",
+                                        },
+                                        ["resizeToFill"] = false,
+                                        ["size"] = {
+                                            ["horz"] = 0,
+                                            ["vert"] = 0,
+                                        },
+                                        ["tileHorizontally"] = false,
+                                        ["tileVertically"] = false,
+                                        ["userTexSampler"] = 0,
+                                        ["vertAlign"] = {
+                                            ["offset"] = 0,
+                                            ["type"] = "middle",
+                                        },
+                                    },
+                                },
+                            },
+                            ["released"] = {
+                                [1] = {
+                                    ["picture"] = {
+                                        ["file"] = "dxgui\\skins\\skinme\\images\\m1\\elements\\dial_me.png",
+                                        ["horzAlign"] = {
+                                            ["type"] = "middle",
+                                        },
+                                        ["vertAlign"] = {
+                                            ["type"] = "middle",
+                                        },
+                                    },
+                                },
+                            },
+                        },
+                    },
+                    ["type"] = "Dial",
+                },
+                --[[
+                ["CourseDialButton"] = { -- The North Up debug button. remove this when the REL/TRUE feature is complete
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column1,
+                            ["y"] = row5
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "N UP",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                --]]
+                --[[
+                ["CurrentHeadingButton"] = { -- remove this when the REL/TRUE feature is complete
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column1,
+                            ["y"] = row6
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "REL",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                --]]
+                ["TrueRelToggleButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column3,
+                            ["y"] = row5
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "TRUE/REL",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["TrueRelDisplayButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column3,
+                            ["y"] = row6
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "HDG",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
                 },
                 ----------------------------------------------------
                 -- Kiowa Integrated Overlay - Warrior Automatis End --
