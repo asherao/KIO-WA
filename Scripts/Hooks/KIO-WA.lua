@@ -10,9 +10,11 @@
     Future Feature Goals:
     - Have NORTH UP or TRACK UP be displayed on spawn instead of having to click it once
     - Get the default window size dialed in
-    - Change the default hotkey
+    - Change the default hotkey. Cpuld have that in the window title or title tooltip
     - Show/Hide keybinds
     - Make a minimum window size
+    - Have the "land" command bypass polychop's requirement to hover then land.
+    - experement using one contril (the dial) for speed, alt, and course
     - talk about the config file for adjustments
     - Add more commands such as
     -- Orbit Left/Right
@@ -20,19 +22,22 @@
     -- Hover Drift Left/Right
     -- Increase/Decrease altitude
     -- Adjust heading left/right
-    -- AI turn rate Slo/Medium/Fast
+    -- AI turn rate Slo/Medium/Fast (can be one button)
+    -- Baro and Radar can be 1 button
+    -- can Plan and route be 1 button?
+    -- may want to split on/off into 2 smaller buttons
 
     - Aircraft Detection - When the player is not flying the Kiowa, the
     GUI is hidden
     - Compact vs Full mode with a toggle switch
     - For the left/right options, you can set a toggle and then
     -- single button for each, eg
-    ------------
-    |Left/Right|
-    |🢀Orbit   |
-    |🢀Heading |
-    |🢀Hover   |
-    ------------
+    -----------------------------------------------
+    |Left/Right|PLAN  |TAKEOFF|ALTITUDE|--SLIDER--|
+    |🢀Orbit   |ROUTE |HOVER  |SPEED   |--SLIDER--|
+    |🢀Heading |BARO  |LAND   |COURSE  |--SLIDER--|
+    |🢀Hover   |RADALT|HDG2MMS|HUD     |  ON/OFF  |
+    -----------------------------------------------
     -- The direction of the arrow changes when "Left/Right" is clicked
     -- This systems reduces the number of buttons from 6 to 4, not including
     -- another row/column for the labels. Overall, seems like a good idea.
@@ -47,12 +52,76 @@
     easy to make the modules, but having them tile properly may be the more difficult
     issue to solve.
     - Remove the margin gap at the top and sides of groups of buttons/controls
+    - Remove Barundus' name. Sorry.
 --]]
 
 --[[
     Bugs:
     - Fix the 000/360 twitch for the headings
     - Why does course 050 result in 050, but Barundus says "Heading 360"? (Polychop bug?)
+--]]
+
+--[[
+Pretty pictures:
+    -----------------------------------------------
+    |Left/Right|PLAN  |TAKEOFF|ALTITUDE|--SLIDER--|
+    |🢀Orbit   |ROUTE |HOVER  |SPEED   |--SLIDER--|
+    |🢀Heading |BARO  |LAND   |COURSE  |--SLIDER--|
+    |🢀Hover   |RADALT|HDG2MMS|HUD     |  ON/OFF  |
+    -----------------------------------------------
+
+    Expanded:
+    ----------------------------------------------------
+    |Left/Right|PLAN/ROUTE|TAKEOFF|NORTH/TRACK|DIAL    |
+    |🢀Orbit   |BARO/ALT  |HOVER  |COURSE     |DIAL    |
+    |🢀Heading |TURN RATE |LAND   |SPEED      |ALTITUDE|
+    |🢀Hover   |   ???    |HDG2MMS|HUD        | ON|OFF |
+    ----------------------------------------------------
+
+    Full:
+    -----------------------------------------
+    |PLAN/ROUTE|TAKEOFF|NORTH/TRACK|DIAL    |
+    |BARO/ALT  |HOVER  |COURSE     |DIAL    |
+    |TURN RATE |LAND   |SPEED      |ALTITUDE|
+    |   ???    |HDG2MMS|HUD        | ON|OFF |
+    -----------------------------------------
+
+     Compact:
+    ------------------------------
+    |TAKEOFF|NORTH/TRACK|DIAL    |
+    |HOVER  |COURSE     |DIAL    |
+    |LAND   |SPEED      |ALTITUDE|
+    |HDG2MMS|HUD        | ON|OFF |
+    ------------------------------
+
+I guess that if flip everything, all I would have to do
+to toggle between Expanded, Full, and Compact is to change the window size and/or make
+the different elements visible. Therefore:
+
+    Expanded:
+    ----------------------------------------------------
+    |DIAL    |NORTH/TRACK|TAKEOFF|PLAN/ROUTE|LEFT/RIGHT|
+    |DIAL    |COURSE     |HOVER  |BARO/ALT  |🢀ORBIT   |
+    |ALTITUDE|SPEED      |LAND   |TURN RATE |🢀HEADING |
+    |ON/OFF  |   HUD     |HDG2MMS|  ???     | 🢀HOVER  |
+    ----------------------------------------------------
+
+    Full:
+    -----------------------------------------
+    |DIAL    |NORTH/TRACK|TAKEOFF|PLAN/ROUTE|
+    |DIAL    |COURSE     |HOVER  |BARO/ALT  |
+    |ALTITUDE|SPEED      |LAND   |TURN RATE |
+    |ON/OFF  |   HUD     |HDG2MMS|  ???     |
+    -----------------------------------------
+
+    Compact:
+    ------------------------------
+    |DIAL    |NORTH/TRACK|TAKEOFF|
+    |DIAL    |COURSE     |HOVER  |
+    |ALTITUDE|SPEED      |LAND   |
+    |ON/OFF  |   HUD     |HDG2MMS|
+    ------------------------------
+
 --]]
 
 local function loadBarundusUI()
