@@ -11,6 +11,7 @@ local column1 = margin
 local column2 = columnSpacing + column1
 local column3 = columnSpacing + column2
 local column4 = columnSpacing + column3
+local column5 = columnSpacing + column4
 
 
 local rowSpacing = buttonHeight * 1.2
@@ -57,7 +58,7 @@ dialog = {
         ["offscreen"] = false,
         ["resizable"] = true,
         ["zOrder"] = 112,
-        ["text"] = "Kiowa Integrated Overlay - Warrior Automatis by Bailey"
+        ["text"] = " KIO-WA by Bailey"
     },
     ["skin"] = {
         ["params"] = {
@@ -161,7 +162,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["RadaltButton"] = {
+                ["SizeButton"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -171,7 +172,7 @@ dialog = {
                         },
                         ["enabled"] = true,
                         ["tabOrder"] = 0,
-                        ["text"] = "RADALT",
+                        ["text"] = "RESIZE",
                         ["tooltip"] = "",
                         ["visible"] = true,
                         ["zindex"] = 1
@@ -337,7 +338,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["FlightplanButton"] = {
+                ["TurnRateButton"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -347,7 +348,7 @@ dialog = {
                         },
                         ["enabled"] = true,
                         ["tabOrder"] = 0,
-                        ["text"] = "PLAN",
+                        ["text"] = "TURN",
                         ["tooltip"] = "",
                         ["visible"] = true,
                         ["zindex"] = 1
@@ -658,7 +659,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["TrueRelDisplayButton"] = {
+                ["NorthTrackButton"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -669,6 +670,94 @@ dialog = {
                         ["enabled"] = true,
                         ["tabOrder"] = 0,
                         ["text"] = "HDG",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["c5r1Button"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column5,
+                            ["y"] = row1
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "c5r1",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["c5r2Button"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column5,
+                            ["y"] = row2
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "c5r2",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["c5r3Button"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column5,
+                            ["y"] = row3
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "c5r3",
+                        ["tooltip"] = "",
+                        ["visible"] = true,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinGraybNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+                ["c5r4Button"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column5,
+                            ["y"] = row4
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "c5r4",
                         ["tooltip"] = "",
                         ["visible"] = true,
                         ["zindex"] = 1

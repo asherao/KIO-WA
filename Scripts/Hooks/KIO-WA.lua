@@ -9,7 +9,6 @@
 --[[
     Future Feature Goals:
     - Have NORTH UP or TRACK UP be displayed on spawn instead of having to click it once
-    - Get the default window size dialed in
     - Change the default hotkey. Cpuld have that in the window title or title tooltip
     - Show/Hide keybinds
     - Make a minimum window size
@@ -17,22 +16,16 @@
     - experement using one contril (the dial) for speed, alt, and course
     - talk about the config file for adjustments
     - Add more commands such as
-    -- Orbit Left/Right
     -- Increase/Decrease speed
     -- Hover Drift Left/Right
     -- Increase/Decrease altitude
     -- Adjust heading left/right
-    -- AI turn rate Slo/Medium/Fast (can be one button)
-    -- Baro and Radar can be 1 button
-    -- can Plan and route be 1 button?
     -- may want to split on/off into 2 smaller buttons
     -- research the possibility of using hardware buttons to toggle the GUI
 
     - Aircraft Detection - When the player is not flying the Kiowa, the
     GUI is hidden
-    - Compact vs Full mode with a toggle switch
-    - For the left/right options, you can set a toggle and then
-    -- single button for each, eg
+
     -----------------------------------------------
     |Left/Right|PLAN  |TAKEOFF|ALTITUDE|--SLIDER--|
     |🢀Orbit   |ROUTE |HOVER  |SPEED   |--SLIDER--|
@@ -122,10 +115,9 @@ the different elements visible. Therefore:
     |ALTITUDE|SPEED      |LAND   |
     |ON/OFF  |   HUD     |HDG2MMS|
     ------------------------------
-
 --]]
 
-local function loadBarundusUI()
+local function loadKIOWAUI()
     package.path = package.path .. ";.\\Scripts\\?.lua;.\\Scripts\\UI\\?.lua;"
 
     local lfs = require("lfs")
@@ -154,8 +146,11 @@ local function loadBarundusUI()
     local rowSpacing = buttonHeight * 0.8
     local row1 = 0
     local row2 = rowSpacing + row1
-    -- when the app starts, it assumes that North is the reference vice relative
-    -- relative is the special case.
+    local isBaroMode = 0
+    local isLeftMode = 0
+    local isRouteMode = 0
+    local windowSize = 1 -- 0 compact;1 full;3 expanded. TODO have this be saved in the config file
+    local turnRateMode = 2 -- 0 slow;1 medium;2 fast
     local isNorthUp = 0 -- this determines if the default behaviour is TRACK UP or NORTH up
     -- In North Up mode the top of the dial is always north
     -- In Track up mode the top of the dial is always the way the aircraft is pointing
@@ -169,6 +164,8 @@ local function loadBarundusUI()
     -- Flying a route
 
     -- Use whichever method you prefer.
+
+    local hotkey = "Ctrl+Shift+F9" --beta. may change in future
 
     local function log(str)
         if not str then
@@ -265,7 +262,7 @@ local function loadBarundusUI()
 
     local function show()
         if window == nil then
-            local status, err = pcall(createBarundusUIWindow)
+            local status, err = pcall(createKIOWAUIWindow)
             if not status then
                 net.log("[KIO-WA] Error creating window: " .. tostring(err))
             end
@@ -275,7 +272,7 @@ local function loadBarundusUI()
         window:setSkin(windowDefaultSkin)
         panel:setVisible(true)
         window:setHasCursor(true)
-        window:setText(' ' .. 'Kiowa Integrated Overlay - Warrior Automatis by Bailey')
+        window:setText(' ' .. 'KIO-WA by Bailey (' .. hotkey .. ')')
 
         isHidden = false
     end
@@ -288,7 +285,7 @@ local function loadBarundusUI()
         isHidden = true
     end
 
-    local function createBarundusUIWindow()
+    local function createKIOWAUIWindow()
         if window ~= nil then
             return
         end
@@ -301,14 +298,15 @@ local function loadBarundusUI()
         windowDefaultSkin = window:getSkin()
         panel = window.Box
 
-        RouteButton = panel.RouteButton
+        RouteButton = panel.RouteButton -- combine for a toggle button
+        TurnRateButton = panel.TurnRateButton
         BaroButton = panel.BaroButton
-        RadaltButton = panel.RadaltButton
+        SizeButton = panel.SizeButton
         TakeoffButton = panel.TakeoffButton
         HoverButton = panel.HoverButton
         LandButton = panel.LandButton
         MmsButton = panel.MmsButton
-        FlightplanButton = panel.FlightplanButton
+        
         HudButton = panel.HudButton
         OnoffButton = panel.OnoffButton
         AltitudeButton = panel.AltitudeButton
@@ -320,7 +318,13 @@ local function loadBarundusUI()
         SlideSlider = panel.SlideSlider
         CourseDial = panel.CourseDial
         TrueRelToggleButton = panel.TrueRelToggleButton
-        TrueRelDisplayButton = panel.TrueRelDisplayButton
+        NorthTrackButton = panel.NorthTrackButton
+
+        --new nomenclature format test for the 5th column
+        LeftRightToggleButton = panel.c5r1Button
+        OrbitButton = panel.c5r2Button
+        TurnButton = panel.c5r3Button
+        HoverButton = panel.c5r4Button
 
         -- setup window
         window:setBounds(
@@ -383,8 +387,8 @@ local function loadBarundusUI()
             end
         end
 
-        function TrueRelDisplayButtonClicked()
-            local displayedDirection = TrueRelDisplayButton:getText()
+        function NorthTrackButtonClicked()
+            local displayedDirection = NorthTrackButton:getText()
             -- strip out degree sign and leading 0s
             displayedDirection = displayedDirection:gsub('°', '') -- removes the degrees symbol
             displayedDirection = tonumber(displayedDirection)     -- removes the leading zero, if any
@@ -470,34 +474,121 @@ local function loadBarundusUI()
             end
         end
 
-        function changeAltitude()
+        function changeAltitude() -- to be updated to dial model
             local sliderValue = AltitudeSlider:getValue()
             local commandButton = 3000 + 31 + sliderValue
             Export.GetDevice(18):performClickableAction(commandButton, 1)
         end
 
-        function AIpress(button)
+        function AIpress(button) -- this function presses the appropiate AI button
             local commandButton = button + 3000
             Export.GetDevice(18):performClickableAction(commandButton, 1)
         end
 
         --numbers from inputTable.lua
-        RouteButton:addMouseDownCallback(
+        BaroButton:addMouseDownCallback(
             function(self)
-                AIpress(14)
+                if isBaroMode == 0 then
+                    isBaroMode = 1
+                    BaroButton:setText("BARO")
+                    AIpress(6) -- baro
+                else
+                    isBaroMode = 0
+                    AIpress(13) -- radalt
+                    BaroButton:setText("RADALT")
+                end
+            end
+        )
+        SizeButton:addMouseDownCallback(
+            function(self)
+                -- empty
+                -- resizes the gui
+                -- 0 compact;1 full;3 expanded 
+                if windowSize == 0 then -- if compact, change to full
+                    windowSize = 1
+                    SizeButton:setText("RESIZE ▶")
+                    window:setBounds(
+                    config.windowPosition.x,
+                    config.windowPosition.y,
+                    333, -- width,  4 columns
+                    config.windowSize.h -- height, leave this alone
+                )
+                
+                elseif windowSize == 1 then -- if full, change to expanded
+                    windowSize = 2
+                    SizeButton:setText("◀ RESIZE")
+                    window:setBounds(
+                    config.windowPosition.x,
+                    config.windowPosition.y,
+                    411, -- width, 5 columns
+                    config.windowSize.h -- height, leave this alone
+                )
+                    
+                    else -- if expanded, change to compact
+                        windowSize = 0
+                    SizeButton:setText("RESIZE ▶")
+                        window:setBounds(
+                    config.windowPosition.x,
+                    config.windowPosition.y,
+                    253, -- width, 3 columns
+                    config.windowSize.h -- height, leave this alone
+                )
+                
+                end
             end
         )
 
-        BaroButton:addMouseDownCallback(
+        LeftRightToggleButton:addMouseDownCallback(
             function(self)
-                AIpress(6)
+                LeftRightToggleButton:setText("LEFT/RIGHT") -- ▶◀
+                if isLeftMode == 0 then
+                OrbitButton:setText("Orbit▶")
+                TurnButton:setText("Turn▶")
+                HoverButton:setText("Hover▶")
+                isLeftMode = 1
+                else
+                OrbitButton:setText("◀Orbit")
+                TurnButton:setText("◀Turn")
+                HoverButton:setText("◀Hover")
+                isLeftMode = 0
+                end
             end
         )
-        RadaltButton:addMouseDownCallback(
+
+        OrbitButton:addMouseDownCallback(
             function(self)
-                AIpress(13)
+                if isLeftMode == 0 then
+                    AIpress(16)
+                    else
+                    AIpress(17)
+                    end
             end
         )
+
+        TurnButton:addMouseDownCallback(
+            function(self)
+                if isLeftMode == 0 then
+                    -- TODO
+                    else
+                    -- TODO
+                    end
+            end
+        )
+        HoverButton:addMouseDownCallback(
+            function(self)
+                if isLeftMode == 0 then
+                    -- TODO
+                    else
+                    -- TODO
+                    end
+            end
+        )
+
+
+
+
+
+
         TakeoffButton:addMouseDownCallback(
             function(self)
                 AIpress(59)
@@ -510,7 +601,11 @@ local function loadBarundusUI()
         )
         LandButton:addMouseDownCallback(
             function(self)
-                AIpress(60)
+                -- When pressing land from forward flight, the command is not
+                -- recognized. You would have to command hover, then command land.
+                -- This is a workaround.
+                AIpress(8) -- hover
+                AIpress(60) -- land
             end
         )
         MmsButton:addMouseDownCallback(
@@ -523,9 +618,34 @@ local function loadBarundusUI()
                 AIpress(104)
             end
         )
-        FlightplanButton:addMouseDownCallback(
+        TurnRateButton:addMouseDownCallback(
             function(self)
-                AIpress(15)
+                if turnRateMode == 0 then -- slow, go medium
+                    AIpress(64) -- medium
+                    TurnRateButton:setText("TURN MED")
+                    turnRateMode = 1
+                elseif turnRateMode == 1 then -- medium, go fast
+                    AIpress(65) -- fast
+                    TurnRateButton:setText("TURN FAST")
+                    turnRateMode = 2
+                else -- fast, go slow
+                    AIpress(63) -- slow
+                    TurnRateButton:setText("TURN SLOW")
+                    turnRateMode = 0
+                end
+            end
+        )
+        RouteButton:addMouseDownCallback(
+            function(self)
+                if isRouteMode == 0 then
+                    isRouteMode = 1
+                    AIpress(14) -- route
+                    RouteButton:setText("ROUTE")
+                else
+                    isRouteMode = 0
+                    AIpress(15) -- flight plan
+                    RouteButton:setText("PLAN")
+                end
             end
         )
         OnoffButton:addMouseDownCallback(
@@ -563,9 +683,9 @@ local function loadBarundusUI()
                 toggleNorthOrTrack()
             end
         )
-        TrueRelDisplayButton:addMouseDownCallback(
+        NorthTrackButton:addMouseDownCallback(
             function(self)
-                TrueRelDisplayButtonClicked()
+                NorthTrackButtonClicked()
             end
         )
         CourseSlider:addChangeCallback(
@@ -609,6 +729,8 @@ local function loadBarundusUI()
         )
 --]]
 
+
+
         if config.hideOnLaunch then
             hide()
             isHidden = true
@@ -618,22 +740,47 @@ local function loadBarundusUI()
         log("KIO-WA window created")
     end
 
+    local function detectPlayerAircraft()
+         -- the way that this is currently, it will stay on in kiowa, and after kiowa
+         -- in the menus. when in a different aircraft it will dissapear. The hotkey
+         -- cant turn it off in the kiowa because this checks the status every frame.
+         aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
+         if aircraft == "OH58D" then
+             isHidden = false
+             show()
+         else
+             isHidden = true
+             hide()
+         end
+    end
+
+
     -- A generic rounding formula used for rounding course readouts
     function round10(num)
         return math.floor(num / 10 + 0.5) * 10
     end
 
+   
+
     local handler = {}
     function handler.onSimulationFrame()
-        aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
+
+        
+
+
+
+
         if config == nil then
             loadConfiguration()
         end
 
         if not window then
             log("Creating KIO-WA window...")
-            createBarundusUIWindow()
+            createKIOWAUIWindow()
         end
+
+
+
         -- TODO: move all of this heading stuff to its own function
         -- Testing live heading. If you can get this you should be able to
         -- then calculate relative heading with the info from the course select dial.
@@ -651,35 +798,68 @@ local function loadBarundusUI()
 
         -- Logic for the heading button that is toggled
         if isNorthUp == 0 then
-            TrueRelDisplayButton:setText(string.format("%03.0f", round10(hdgRelative)) .. "°")
+            NorthTrackButton:setText(string.format("%03.0f", round10(hdgRelative)) .. "°")
         else
             local direction = CourseDial:getValue()
             if direction == 0 then direction = 360 end -- this will show 360 instead of 0
 
-            TrueRelDisplayButton:setText(string.format("%03.0f", round10(direction)) .. "°")
+            NorthTrackButton:setText(string.format("%03.0f", round10(direction)) .. "°")
         end
     end
 
     function handler.onMissionLoadEnd()
         inMission = true
         -- Configure North/Track up button text
-        toggleNorthOrTrack()
-    end
+        --toggleNorthOrTrack()
+        -- TODO After testing, moveto own function
+        --aircraftDetection()
+        --function aircraftDetection()
+        -- the way that this is currently, it will stay on in kiowa, and after kiowa
+        -- in the menus. when in a different aircraft it will dissapear. The hotkey
+        -- cant turn it off in the kiowa because this checks the status every frame.
+        aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
+        if aircraft == "OH58D" then
+            isHidden = false
+            show()
+            --OnoffButton:setText(aircraft)
+            --show()
+            logFile:write(aircraft)
 
-    function handler.onSimulationResume()
-        toggleNorthOrTrack()
+        else
+            isHidden = true
+            --OnoffButton:setText(aircraft)
+            --hide()
+            logFile:write(aircraft)
+            hide()
+        end
+    --end
     end
 
     function handler.onSimulationStop()
+        aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
+        logFile:write("|onSimulationStop = " .. aircraft .. "|")
         inMission = false
+        hide()
     end
+
+     function handler.onSimulationResume() --onSimulationPause
+        detectPlayerAircraft()
+     end
+
+     function handler.onPlayerChangeSlot() -- MP only
+      detectPlayerAircraft()
+     end
+
+    function handler.onShowBriefing()
+        detectPlayerAircraft()
+     end
 
     DCS.setUserCallbacks(handler)
 
     net.log("[KIO-WA] Loaded ...")
 end
 
-local status, err = pcall(loadBarundusUI)
+local status, err = pcall(loadKIOWAUI)
 if not status then
     net.log("[KIO-WA] Load Error: " .. tostring(err))
 end
