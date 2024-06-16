@@ -878,6 +878,7 @@ local function loadKIOWAUI()
         if not window then
             log("Creating KIO-WA window...")
             createKIOWAUIWindow()
+            setAllText() -- sets the default button text for the app
         end
 
         UpdateCrs()
