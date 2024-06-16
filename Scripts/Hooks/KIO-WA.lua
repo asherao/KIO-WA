@@ -21,7 +21,9 @@
     -- Increase/Decrease altitude
     -- Adjust heading left/right
     -- may want to split on/off into 2 smaller buttons
-    -- research the possibility of using hardware buttons to toggle the GUI
+    - research the possibility of using hardware buttons to toggle the GUI
+    - If orbit is pressed and the aircraft is going slower than 10 kts,
+    -- then order 10 kts and then order orbit.
 
     - Aircraft Detection - When the player is not flying the Kiowa, the
     GUI is hidden
@@ -51,6 +53,8 @@
 
 --[[
     Bugs:
+    - Fix TRACK/NORTH up toggle
+    - Fix altitude clicked
     - Fix the 000/360 twitch for the headings
     - Why does course 050 result in 050, but Barundus says "Heading 360"? (Polychop bug?)
 --]]
@@ -97,7 +101,7 @@ the different elements visible. Therefore:
     |DIAL    |NORTH/TRACK|TAKEOFF|PLAN/ROUTE|LEFT/RIGHT|
     |DIAL    |COURSE     |HOVER  |BARO/ALT  |🢀ORBIT   |
     |ALTITUDE|SPEED      |LAND   |TURN RATE |🢀HEADING |
-    |ON/OFF  |   HUD     |HDG2MMS|  ???     | 🢀HOVER  |
+    |ON/OFF  |   HUD     |RESIZE|  HDG2MMS  | 🢀HOVER  |
     ----------------------------------------------------
 
     Full:
@@ -105,7 +109,7 @@ the different elements visible. Therefore:
     |DIAL    |NORTH/TRACK|TAKEOFF|PLAN/ROUTE|
     |DIAL    |COURSE     |HOVER  |BARO/ALT  |
     |ALTITUDE|SPEED      |LAND   |TURN RATE |
-    |ON/OFF  |   HUD     |HDG2MMS|  ???     |
+    |ON/OFF  |   HUD     |HDG2MMS|  RESIZE  |
     -----------------------------------------
 
     Compact:
@@ -138,6 +142,7 @@ local function loadKIOWAUI()
     local isHidden = true
     local inMission = false
 
+
     local buttonHeight = 25
     local buttonWidth = 50
 
@@ -149,9 +154,9 @@ local function loadKIOWAUI()
     local isBaroMode = 0
     local isLeftMode = 0
     local isRouteMode = 0
-    local windowSize = 1 -- 0 compact;1 full;3 expanded. TODO have this be saved in the config file
+    local windowSize = 1   -- 0 compact;1 full;3 expanded. TODO have this be saved in the config file
     local turnRateMode = 2 -- 0 slow;1 medium;2 fast
-    local isNorthUp = 0 -- this determines if the default behaviour is TRACK UP or NORTH up
+    local isNorthUp = 0    -- this determines if the default behaviour is TRACK UP or NORTH up
     -- In North Up mode the top of the dial is always north
     -- In Track up mode the top of the dial is always the way the aircraft is pointing
     -- Use cases to each mode:
@@ -207,9 +212,9 @@ local function loadKIOWAUI()
         else
             log("Configuration not found, creating defaults...")
             config = {
-                hotkey         = "Ctrl+Shift+F9",       -- show/hide
-                windowPosition = { x = 1430, y = 754 }, -- these values were obtained by manually adjusting
-                windowSize     = { w = 344, h = 132 },  -- the window till I got something that looked ok
+                hotkey         = "Ctrl+Shift+F9",      -- show/hide
+                windowPosition = { x = 50, y = 50 },   -- these values were obtained by manually adjusting (original 430,754)
+                windowSize     = { w = 253, h = 132 }, -- the window till I got something that looked ok
                 hideOnLaunch   = false,
             }
             saveConfiguration()
@@ -298,33 +303,28 @@ local function loadKIOWAUI()
         windowDefaultSkin = window:getSkin()
         panel = window.Box
 
-        RouteButton = panel.RouteButton -- combine for a toggle button
-        TurnRateButton = panel.TurnRateButton
-        BaroButton = panel.BaroButton
-        SizeButton = panel.SizeButton
-        TakeoffButton = panel.TakeoffButton
-        HoverButton = panel.HoverButton
-        LandButton = panel.LandButton
-        MmsButton = panel.MmsButton
-        
-        HudButton = panel.HudButton
-        OnoffButton = panel.OnoffButton
-        AltitudeButton = panel.AltitudeButton
-        KnotsButton = panel.KnotsButton
-        CourseButton = panel.CourseButton
-        AltitudeSlider = panel.AltitudeSlider
-        KnotsSlider = panel.KnotsSlider
-        CourseSlider = panel.CourseSlider
-        SlideSlider = panel.SlideSlider
-        CourseDial = panel.CourseDial
-        TrueRelToggleButton = panel.TrueRelToggleButton
-        NorthTrackButton = panel.NorthTrackButton
+        RouteButton = panel.c4r1Button
+        TurnRateButton = panel.c4r3Button
+        BaroButton = panel.c4r2Button
+        SizeButton = panel.c3r4Button
+        TakeoffButton = panel.c3r1Button
+        HoverButton = panel.c3r2Button
+        LandButton = panel.c3r3Button
+        MmsButton = panel.c4r4Button
+
+        HudButton = panel.c2r4Button
+        OnoffButton = panel.c1r4Button
+        AltitudeButton = panel.c1r3Button
+        KnotsButton = panel.c2r3Button
+        ParameterDial = panel.ParameterDial
+        TrueRelToggleButton = panel.c2r1Button
+        NorthTrackButton = panel.c2r2Button
 
         --new nomenclature format test for the 5th column
         LeftRightToggleButton = panel.c5r1Button
         OrbitButton = panel.c5r2Button
         TurnButton = panel.c5r3Button
-        HoverButton = panel.c5r4Button
+        DriftHoverButton = panel.c5r4Button
 
         -- setup window
         window:setBounds(
@@ -351,31 +351,6 @@ local function loadKIOWAUI()
         window:addPositionCallback(handleMove)
         window:setVisible(true)
 
-        local function changeSpeed()
-            local sliderValue = KnotsSlider:getValue() -- 1 to 11 in the dlg to represent 10kts to 110kts
-            -- 3000 + 20 + slider value
-            -- ...unless, the slider value is 11 (110 kts), then the button is 3062...
-            if sliderValue == 11 then
-                Export.GetDevice(18):performClickableAction(3062, 1)
-            else
-                local commandButton = 3000 + 20 + sliderValue
-                Export.GetDevice(18):performClickableAction(commandButton, 1)
-            end
-        end
-
-        local function changeCourse(index)
-            -- index is the direction that the player has selected, in 10s
-            -- The slider goes from 0 to 350
-            -- Head to 0 is button 66
-            -- That means that the button can be generated by
-            -- 3000 + 66 + index/10
-            -- local commandButton = 3000 + 66 + (index/10)
-            local sliderValue = CourseSlider:getValue()
-            -- this handes the case where the button may display 360, which is actually 000
-            if sliderValue == 36 then sliderValue = 0 end
-            local commandButton = 3000 + 66 + sliderValue
-            Export.GetDevice(18):performClickableAction(commandButton, 1)
-        end
 
         local function toggleNorthOrTrack()
             if isNorthUp == 1 then                      -- if calculating with True
@@ -389,6 +364,7 @@ local function loadKIOWAUI()
 
         function NorthTrackButtonClicked()
             local displayedDirection = NorthTrackButton:getText()
+            -- TODO make a catch for someone pressing it before the dial used
             -- strip out degree sign and leading 0s
             displayedDirection = displayedDirection:gsub('°', '') -- removes the degrees symbol
             displayedDirection = tonumber(displayedDirection)     -- removes the leading zero, if any
@@ -400,85 +376,201 @@ local function loadKIOWAUI()
             Export.GetDevice(18):performClickableAction(commandButton, 1)
         end
 
-        local function repeatTurn() -- testing...
-            --[[
-                if SlideSlider:getValue() == 0 then
-                    while SlideSlider:getValue() == 0 do
-                        Export.GetDevice(18):performClickableAction(3103, -1) -- 1 happens to only do it a bit
-                    end
-                elseif SlideSlider:getValue() == 2 then
-                    while SlideSlider:getValue() == 2 do
-                        Export.GetDevice(18):performClickableAction(3103, 1) -- right
-                    end
-                end
-                --]]
+        local function UpdateKts()
+            -- there are 11 different speed commands. the dial is 0 to 360 degrees.
+            -- each speed gets about 11/360th of the pie. That deterines what is shows
+            -- on the button and which command is sent.
+            local dialValue = ParameterDial:getValue()
+            if dialValue < 33 then
+                KnotsButton:setText("10 kts")
+            elseif dialValue < (33 * 2) then
+                KnotsButton:setText("20 kts")
+            elseif dialValue < (33 * 3) then
+                KnotsButton:setText("30 kts")
+            elseif dialValue < (33 * 4) then
+                KnotsButton:setText("40 kts")
+            elseif dialValue < (33 * 5) then
+                KnotsButton:setText("50 kts")
+            elseif dialValue < (33 * 6) then
+                KnotsButton:setText("60 kts")
+            elseif dialValue < (33 * 7) then
+                KnotsButton:setText("70 kts")
+            elseif dialValue < (33 * 8) then
+                KnotsButton:setText("80 kts")
+            elseif dialValue < (33 * 9) then
+                KnotsButton:setText("90 kts")
+            elseif dialValue < (33 * 10) then
+                KnotsButton:setText("100 kts")
+            else
+                KnotsButton:setText("110 kts")
+            end
         end
 
-        function showAltitudeButtonValue()
-            if AltitudeSlider:getValue() == 0 then
+        local function changeKts()
+            -- there are 11 different speed commands. the dial is 0 to 360 degrees.
+            -- each speed gets about 11/360th of the pie. That deterines what is shows
+            -- on the button and which command is sent.
+            local dialValue = ParameterDial:getValue()
+            local sliderValue
+            if dialValue < 33 then
+                sliderValue = 0
+            elseif dialValue < (33 * 2) then
+                sliderValue = 1
+            elseif dialValue < (33 * 3) then
+                sliderValue = 2
+            elseif dialValue < (33 * 4) then
+                sliderValue = 3
+            elseif dialValue < (33 * 5) then
+                sliderValue = 4
+            elseif dialValue < (33 * 6) then
+                sliderValue = 5
+            elseif dialValue < (33 * 7) then
+                sliderValue = 6
+            elseif dialValue < (33 * 8) then
+                sliderValue = 7
+            elseif dialValue < (33 * 9) then
+                sliderValue = 8
+            elseif dialValue < (33 * 10) then
+                sliderValue = 9
+            else
+                sliderValue = 41
+            end
+            local commandButton = 3000 + 20 + sliderValue + 1 -- plus 1 bc oops.
+            Export.GetDevice(18):performClickableAction(commandButton, 1)
+        end
+
+        function UpdateAlt() -- 28 entries
+            if ParameterDial:getValue() < (13 * 1) then
                 AltitudeButton:setText("10 ft")
-            elseif AltitudeSlider:getValue() == 1 then
+            elseif ParameterDial:getValue() < (13 * 2) then
                 AltitudeButton:setText("20 ft")
-            elseif AltitudeSlider:getValue() == 2 then
+            elseif ParameterDial:getValue() < (13 * 3) then
                 AltitudeButton:setText("30 ft")
-            elseif AltitudeSlider:getValue() == 3 then
+            elseif ParameterDial:getValue() < (13 * 4) then
                 AltitudeButton:setText("40 ft")
-            elseif AltitudeSlider:getValue() == 4 then
+            elseif ParameterDial:getValue() < (13 * 5) then
                 AltitudeButton:setText("50 ft")
-            elseif AltitudeSlider:getValue() == 5 then
+            elseif ParameterDial:getValue() < (13 * 6) then
                 AltitudeButton:setText("60 ft")
-            elseif AltitudeSlider:getValue() == 6 then
+            elseif ParameterDial:getValue() < (13 * 7) then
                 AltitudeButton:setText("70 ft")
-            elseif AltitudeSlider:getValue() == 7 then
+            elseif ParameterDial:getValue() < (13 * 8) then
                 AltitudeButton:setText("80 ft")
-            elseif AltitudeSlider:getValue() == 8 then
+            elseif ParameterDial:getValue() < (13 * 9) then
                 AltitudeButton:setText("90 ft")
-            elseif AltitudeSlider:getValue() == 9 then
+            elseif ParameterDial:getValue() < (13 * 10) then
                 AltitudeButton:setText("100 ft")
-            elseif AltitudeSlider:getValue() == 10 then
+            elseif ParameterDial:getValue() < (13 * 11) then
                 AltitudeButton:setText("200 ft")
-            elseif AltitudeSlider:getValue() == 11 then
+            elseif ParameterDial:getValue() < (13 * 12) then
                 AltitudeButton:setText("300 ft")
-            elseif AltitudeSlider:getValue() == 12 then
+            elseif ParameterDial:getValue() < (13 * 13) then
                 AltitudeButton:setText("400 ft")
-            elseif AltitudeSlider:getValue() == 13 then
+            elseif ParameterDial:getValue() < (13 * 14) then
                 AltitudeButton:setText("500 ft")
-            elseif AltitudeSlider:getValue() == 14 then
+            elseif ParameterDial:getValue() < (13 * 15) then
                 AltitudeButton:setText("600 ft")
-            elseif AltitudeSlider:getValue() == 15 then
+            elseif ParameterDial:getValue() < (13 * 16) then
                 AltitudeButton:setText("700 ft")
-            elseif AltitudeSlider:getValue() == 16 then
+            elseif ParameterDial:getValue() < (13 * 17) then
                 AltitudeButton:setText("800 ft")
-            elseif AltitudeSlider:getValue() == 17 then
+            elseif ParameterDial:getValue() < (13 * 18) then
                 AltitudeButton:setText("900 ft")
-            elseif AltitudeSlider:getValue() == 18 then
+            elseif ParameterDial:getValue() < (13 * 19) then
                 AltitudeButton:setText("1000 ft")
-            elseif AltitudeSlider:getValue() == 29 then
+            elseif ParameterDial:getValue() < (13 * 20) then
                 AltitudeButton:setText("2000 ft")
-            elseif AltitudeSlider:getValue() == 20 then
+            elseif ParameterDial:getValue() < (13 * 21) then
                 AltitudeButton:setText("3000 ft")
-            elseif AltitudeSlider:getValue() == 21 then
+            elseif ParameterDial:getValue() < (13 * 22) then
                 AltitudeButton:setText("4000 ft")
-            elseif AltitudeSlider:getValue() == 22 then
+            elseif ParameterDial:getValue() < (13 * 23) then
                 AltitudeButton:setText("5000 ft")
-            elseif AltitudeSlider:getValue() == 23 then
+            elseif ParameterDial:getValue() < (13 * 24) then
                 AltitudeButton:setText("6000 ft")
-            elseif AltitudeSlider:getValue() == 24 then
+            elseif ParameterDial:getValue() < (13 * 25) then
                 AltitudeButton:setText("7000 ft")
-            elseif AltitudeSlider:getValue() == 25 then
+            elseif ParameterDial:getValue() < (13 * 26) then
                 AltitudeButton:setText("8000 ft")
-            elseif AltitudeSlider:getValue() == 26 then
+            elseif ParameterDial:getValue() < (13 * 27) then
                 AltitudeButton:setText("9000 ft")
-            elseif AltitudeSlider:getValue() == 27 then
+            else
                 AltitudeButton:setText("10000 ft")
             end
         end
 
-        function changeAltitude() -- to be updated to dial model
-            local sliderValue = AltitudeSlider:getValue()
-            local commandButton = 3000 + 31 + sliderValue
+        function ChangeAlt()
+            local value
+            if ParameterDial:getValue() < (13 * 1) then
+                value = 1
+            elseif ParameterDial:getValue() < (13 * 2) then
+                value = 2
+            elseif ParameterDial:getValue() < (13 * 3) then
+                value = 3
+            elseif ParameterDial:getValue() < (13 * 4) then
+                value = 4
+            elseif ParameterDial:getValue() < (13 * 5) then
+                value = 5
+            elseif ParameterDial:getValue() < (13 * 6) then
+                value = 6
+            elseif ParameterDial:getValue() < (13 * 7) then
+                value = 7
+            elseif ParameterDial:getValue() < (13 * 8) then
+                value = 8
+            elseif ParameterDial:getValue() < (13 * 9) then
+                value = 9
+            elseif ParameterDial:getValue() < (13 * 10) then
+                value = 10
+            elseif ParameterDial:getValue() < (13 * 11) then
+                value = 11
+            elseif ParameterDial:getValue() < (13 * 12) then
+                value = 12
+            elseif ParameterDial:getValue() < (13 * 13) then
+                value = 13
+            elseif ParameterDial:getValue() < (13 * 14) then
+                value = 14
+            elseif ParameterDial:getValue() < (13 * 15) then
+                value = 15
+            elseif ParameterDial:getValue() < (13 * 16) then
+                value = 16
+            elseif ParameterDial:getValue() < (13 * 17) then
+                value = 17
+            elseif ParameterDial:getValue() < (13 * 18) then
+                value = 18
+            elseif ParameterDial:getValue() < (13 * 19) then
+                value = 19
+            elseif ParameterDial:getValue() < (13 * 20) then
+                value = 20
+            elseif ParameterDial:getValue() < (13 * 21) then
+                value = 21
+            elseif ParameterDial:getValue() < (13 * 22) then
+                value = 22
+            elseif ParameterDial:getValue() < (13 * 23) then
+                value = 23
+            elseif ParameterDial:getValue() < (13 * 24) then
+                value = 24
+            elseif ParameterDial:getValue() < (13 * 25) then
+                value = 25
+            elseif ParameterDial:getValue() < (13 * 26) then
+                value = 26
+            elseif ParameterDial:getValue() < (13 * 27) then
+                value = 27
+            else
+                value = 28
+            end
+            local commandButton = 3000 + 30 + value
             Export.GetDevice(18):performClickableAction(commandButton, 1)
         end
+
+        --[[
+        function changeAltitude() -- to be updated to dial model
+            local dialValue = ParameterDial:getValue()
+            local commandButton = 3000 + 31 + dialValue
+            Export.GetDevice(18):performClickableAction(commandButton, 1)
+        end
+        --]]
+
+
 
         function AIpress(button) -- this function presses the appropiate AI button
             local commandButton = button + 3000
@@ -503,37 +595,34 @@ local function loadKIOWAUI()
             function(self)
                 -- empty
                 -- resizes the gui
-                -- 0 compact;1 full;3 expanded 
+                -- 0 compact;1 full;3 expanded
                 if windowSize == 0 then -- if compact, change to full
                     windowSize = 1
                     SizeButton:setText("RESIZE ▶")
                     window:setBounds(
-                    config.windowPosition.x,
-                    config.windowPosition.y,
-                    333, -- width,  4 columns
-                    config.windowSize.h -- height, leave this alone
-                )
-                
+                        config.windowPosition.x,
+                        config.windowPosition.y,
+                        333,                -- width,  4 columns
+                        config.windowSize.h -- height, leave this alone
+                    )
                 elseif windowSize == 1 then -- if full, change to expanded
                     windowSize = 2
                     SizeButton:setText("◀ RESIZE")
                     window:setBounds(
-                    config.windowPosition.x,
-                    config.windowPosition.y,
-                    411, -- width, 5 columns
-                    config.windowSize.h -- height, leave this alone
-                )
-                    
-                    else -- if expanded, change to compact
-                        windowSize = 0
+                        config.windowPosition.x,
+                        config.windowPosition.y,
+                        411,                -- width, 5 columns
+                        config.windowSize.h -- height, leave this alone
+                    )
+                else                        -- if expanded, change to compact
+                    windowSize = 0
                     SizeButton:setText("RESIZE ▶")
-                        window:setBounds(
-                    config.windowPosition.x,
-                    config.windowPosition.y,
-                    253, -- width, 3 columns
-                    config.windowSize.h -- height, leave this alone
-                )
-                
+                    window:setBounds(
+                        config.windowPosition.x,
+                        config.windowPosition.y,
+                        253,                -- width, 3 columns
+                        config.windowSize.h -- height, leave this alone
+                    )
                 end
             end
         )
@@ -542,15 +631,15 @@ local function loadKIOWAUI()
             function(self)
                 LeftRightToggleButton:setText("LEFT/RIGHT") -- ▶◀
                 if isLeftMode == 0 then
-                OrbitButton:setText("Orbit▶")
-                TurnButton:setText("Turn▶")
-                HoverButton:setText("Hover▶")
-                isLeftMode = 1
+                    OrbitButton:setText(" Orbit ▶")
+                    TurnButton:setText(" Turn ▶")
+                    DriftHoverButton:setText(" Hover ▶")
+                    isLeftMode = 1
                 else
-                OrbitButton:setText("◀Orbit")
-                TurnButton:setText("◀Turn")
-                HoverButton:setText("◀Hover")
-                isLeftMode = 0
+                    OrbitButton:setText("◀ Orbit ")
+                    TurnButton:setText("◀ Turn ")
+                    DriftHoverButton:setText("◀ Hover ")
+                    isLeftMode = 0
                 end
             end
         )
@@ -559,9 +648,9 @@ local function loadKIOWAUI()
             function(self)
                 if isLeftMode == 0 then
                     AIpress(16)
-                    else
+                else
                     AIpress(17)
-                    end
+                end
             end
         )
 
@@ -569,25 +658,20 @@ local function loadKIOWAUI()
             function(self)
                 if isLeftMode == 0 then
                     -- TODO
-                    else
+                else
                     -- TODO
-                    end
+                end
             end
         )
-        HoverButton:addMouseDownCallback(
+        DriftHoverButton:addMouseDownCallback(
             function(self)
                 if isLeftMode == 0 then
                     -- TODO
-                    else
+                else
                     -- TODO
-                    end
+                end
             end
         )
-
-
-
-
-
 
         TakeoffButton:addMouseDownCallback(
             function(self)
@@ -604,7 +688,7 @@ local function loadKIOWAUI()
                 -- When pressing land from forward flight, the command is not
                 -- recognized. You would have to command hover, then command land.
                 -- This is a workaround.
-                AIpress(8) -- hover
+                AIpress(8)  -- hover
                 AIpress(60) -- land
             end
         )
@@ -621,14 +705,14 @@ local function loadKIOWAUI()
         TurnRateButton:addMouseDownCallback(
             function(self)
                 if turnRateMode == 0 then -- slow, go medium
-                    AIpress(64) -- medium
+                    AIpress(64)           -- medium
                     TurnRateButton:setText("TURN MED")
                     turnRateMode = 1
                 elseif turnRateMode == 1 then -- medium, go fast
-                    AIpress(65) -- fast
+                    AIpress(65)               -- fast
                     TurnRateButton:setText("TURN FAST")
                     turnRateMode = 2
-                else -- fast, go slow
+                else            -- fast, go slow
                     AIpress(63) -- slow
                     TurnRateButton:setText("TURN SLOW")
                     turnRateMode = 0
@@ -655,29 +739,18 @@ local function loadKIOWAUI()
         )
         AltitudeButton:addMouseDownCallback(
             function(self)
-                changeAltitude()
+                ChangeAlt()
+                --changeAltitude()
             end
         )
         KnotsButton:addMouseDownCallback(
             function(self)
-                changeSpeed()
+                changeKts()
             end
         )
-        CourseButton:addMouseDownCallback(
-            function(self)
-                changeCourse()
-            end
-        )
-        AltitudeSlider:addChangeCallback(
-            function(self)
-                showAltitudeButtonValue()
-            end
-        )
-        KnotsSlider:addChangeCallback(
-            function(self)
-                KnotsButton:setText(KnotsSlider:getValue() * 10 .. " kts")
-            end
-        )
+
+
+
         TrueRelToggleButton:addMouseDownCallback(
             function(self)
                 toggleNorthOrTrack()
@@ -688,34 +761,18 @@ local function loadKIOWAUI()
                 NorthTrackButtonClicked()
             end
         )
-        CourseSlider:addChangeCallback(
+        ParameterDial:addChangeCallback(
             function(self)
-                local direction = CourseSlider:getValue() * 10
-                if direction == 0 then direction = 360 end -- this will show 360 instead of 0
-                CourseButton:setText(string.format("%03.0f", direction) .. "°")
-                -- the format is so that directions less than 3 digits get leading 0s
+                UpdateAlt()
+                UpdateCrs()
+                UpdateKts()
+                --OnoffButton:setText(ParameterDial:getValue()) -- debug  `
             end
         )
-        --[[
-        -- Orbit Test
-        SlideSlider:addChangeCallback( -- orbit left 17, right 16
-            function(self)
-                if SlideSlider:getValue() == 0 then
-                    Export.GetDevice(18):performClickableAction(3017, 1)
-                elseif SlideSlider:getValue() == 2 then
-                    Export.GetDevice(18):performClickableAction(3016, 1)
-                end
-            end
-        )
---]]
-        -- Turn Test
-        --[[
-        SlideSlider:addChangeCallback( -- orbit left 17, right 16
-            function(self)
-                repeatTurn()
-            end
-        )
---]]
+
+
+
+
         --[[
 --Example
         window:addHotKeyCallback(
@@ -730,7 +787,6 @@ local function loadKIOWAUI()
 --]]
 
 
-
         if config.hideOnLaunch then
             hide()
             isHidden = true
@@ -740,18 +796,71 @@ local function loadKIOWAUI()
         log("KIO-WA window created")
     end
 
+    function UpdateCrs()
+        -- TODO: move all of this heading stuff to its own function
+        --local pitchRad, bankRad, hdgRad = Export.LoGetADIPitchBankYaw() -- this is true yaw/hdg
+        local hdgRad = Export.LoGetMagneticYaw()  -- this is magnetic yaw/hdg in radians TOOO: may have to movethis
+        -- to every fram
+        local hdgDeg = math.abs(math.deg(hdgRad)) -- radians to degrees. formula is xdeg = rad(180/pi)
+        -- Now, make thte button turn to relative. relative = absolute heading + arrow direction
+        local hdgRelative = hdgDeg + ParameterDial:getValue()
+        if hdgRelative > 360 then hdgRelative = hdgRelative - 360 end -- account for numbers past 360 degrees
+        if hdgRelative == 0 then hdgRelative = 360 end                -- just here bc Barundus says 360
+        --CurrentHeadingButton:setText(string.format("%03.0f", round10(hdgRelative)) .. "N UP") -- change the name of this button to relative hdg
+        -- after varifying this works, you need to round the displayed headings so that the user knows
+        -- which heading they will be commanding. Go to the commanded heading.
+
+        -- Logic for the heading button that is toggled
+        if isNorthUp == 0 then
+            if NorthTrackButton:getText() ~= "CRS" then -- TODO, should probs init this to 000 deg to prevent issues
+                NorthTrackButton:setText(string.format("%03.0f", round10(hdgRelative)) .. "°")
+            end
+        else
+            if NorthTrackButton:getText() ~= "CRS" then
+                local direction = ParameterDial:getValue()
+                if direction == 0 then direction = 360 end -- this will show 360 instead of 0
+
+                NorthTrackButton:setText(string.format("%03.0f", round10(direction)) .. "°")
+            end
+        end
+    end
+
+    local function setAllText()
+        RouteButton:setText("RTE/PLAN")
+        TurnRateButton:setText("TURN RATE")
+        BaroButton:setText("BARO/RAD")
+        SizeButton:setText("RESIZE")
+        TakeoffButton:setText("TAKEOFF")
+        HoverButton:setText("HOVER")
+        LandButton:setText("LAND")
+        MmsButton:setText("HDG2MMS")
+
+        HudButton:setText("HUD")
+        OnoffButton:setText("ON/OFF")
+        AltitudeButton:setText("ALT")
+        KnotsButton:setText("KTS")
+        TrueRelToggleButton:setText("TRK/NORTH")
+        NorthTrackButton:setText("000") -- having this say CRS is breaking things
+
+        --new nomenclature format test for the 5th column
+        LeftRightToggleButton:setText("LEFT/RIGHT")
+        OrbitButton:setText("ORBIT")
+        TurnButton:setText("TURN")
+        DriftHoverButton:setText("HOVER")
+    end
+
     local function detectPlayerAircraft()
-         -- the way that this is currently, it will stay on in kiowa, and after kiowa
-         -- in the menus. when in a different aircraft it will dissapear. The hotkey
-         -- cant turn it off in the kiowa because this checks the status every frame.
-         aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
-         if aircraft == "OH58D" then
-             isHidden = false
-             show()
-         else
-             isHidden = true
-             hide()
-         end
+        -- the way that this is currently, it will stay on in kiowa, and after kiowa
+        -- in the menus. when in a different aircraft it will dissapear. The hotkey
+        -- cant turn it off in the kiowa because this checks the status every frame.
+        aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
+        if aircraft == "OH58D" then
+            isHidden = false
+            show()
+        else
+            isHidden = true
+            hide()
+        end
     end
 
 
@@ -760,16 +869,8 @@ local function loadKIOWAUI()
         return math.floor(num / 10 + 0.5) * 10
     end
 
-   
-
     local handler = {}
     function handler.onSimulationFrame()
-
-        
-
-
-
-
         if config == nil then
             loadConfiguration()
         end
@@ -779,36 +880,12 @@ local function loadKIOWAUI()
             createKIOWAUIWindow()
         end
 
-
-
-        -- TODO: move all of this heading stuff to its own function
-        -- Testing live heading. If you can get this you should be able to
-        -- then calculate relative heading with the info from the course select dial.
-        --local pitchRad, bankRad, hdgRad = Export.LoGetADIPitchBankYaw() -- this is true yaw/hdg
-        local hdgRad = Export.LoGetMagneticYaw()  -- this is magnetic yaw/hdg
-        local hdgDeg = math.abs(math.deg(hdgRad)) -- deg to rad formula is xdeg = rad(180/pi)
-        --CurrentHeadingButton:setText(string.format("%03.0f", hdgDeg) .. "°") -- commented out to develop relative heading
-        -- Now, make thte button turn to relative. relative = absolute heading + arrow direction
-        local hdgRelative = hdgDeg + CourseDial:getValue()
-        if hdgRelative > 360 then hdgRelative = hdgRelative - 360 end -- account for numbers past 360 degrees
-        if hdgRelative == 0 then hdgRelative = 360 end                -- just here bc Barundus says 360
-        --CurrentHeadingButton:setText(string.format("%03.0f", round10(hdgRelative)) .. "N UP") -- change the name of this button to relative hdg
-        -- after varifying this works, you need to round the displayed headings so that the user knows
-        -- which heading they will be commanding. Go to the commanded heading.
-
-        -- Logic for the heading button that is toggled
-        if isNorthUp == 0 then
-            NorthTrackButton:setText(string.format("%03.0f", round10(hdgRelative)) .. "°")
-        else
-            local direction = CourseDial:getValue()
-            if direction == 0 then direction = 360 end -- this will show 360 instead of 0
-
-            NorthTrackButton:setText(string.format("%03.0f", round10(direction)) .. "°")
-        end
+        UpdateCrs()
     end
 
     function handler.onMissionLoadEnd()
         inMission = true
+        setAllText() -- sets the default button text for the app
         -- Configure North/Track up button text
         --toggleNorthOrTrack()
         -- TODO After testing, moveto own function
@@ -824,7 +901,6 @@ local function loadKIOWAUI()
             --OnoffButton:setText(aircraft)
             --show()
             logFile:write(aircraft)
-
         else
             isHidden = true
             --OnoffButton:setText(aircraft)
@@ -832,7 +908,7 @@ local function loadKIOWAUI()
             logFile:write(aircraft)
             hide()
         end
-    --end
+        --end
     end
 
     function handler.onSimulationStop()
@@ -842,17 +918,17 @@ local function loadKIOWAUI()
         hide()
     end
 
-     function handler.onSimulationResume() --onSimulationPause
+    function handler.onSimulationResume() --onSimulationPause
         detectPlayerAircraft()
-     end
+    end
 
-     function handler.onPlayerChangeSlot() -- MP only
-      detectPlayerAircraft()
-     end
+    function handler.onPlayerChangeSlot() -- MP only
+        detectPlayerAircraft()
+    end
 
     function handler.onShowBriefing()
         detectPlayerAircraft()
-     end
+    end
 
     DCS.setUserCallbacks(handler)
 
