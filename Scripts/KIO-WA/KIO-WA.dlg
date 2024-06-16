@@ -20,7 +20,7 @@ local row2 = rowSpacing + row1
 local row3 = rowSpacing + row2
 local row4 = rowSpacing + row3
 local row5 = rowSpacing + row4
-local row6 = rowSpacing + row5
+local row6 = rowSpacing + row5 -- unused
 
 local sliderVertOffset = -6
 local dialHorzOffset = 20 -- centered offset concerning the left justification of the dial
@@ -115,8 +115,7 @@ dialog = {
                 ------------------------------------------------
                 -- Kiowa Integrated Overlay - Warrior Automatis --
                 ------------------------------------------------
-
-                ["RouteButton"] = {
+                ["c1r2Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -128,7 +127,7 @@ dialog = {
                         ["tabOrder"] = 0,
                         ["text"] = "ROUTE",
                         ["tooltip"] = "",
-                        ["visible"] = true,
+                        ["visible"] = false,
                         ["zindex"] = 1
                     },
                     ["skin"] = {
@@ -140,7 +139,7 @@ dialog = {
                 },
 
 
-                ["BaroButton"] = {
+                ["c1r3Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -162,7 +161,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["SizeButton"] = {
+                ["c1r4Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -179,12 +178,12 @@ dialog = {
                     },
                     ["skin"] = {
                         ["params"] = {
-                            ["name"] = "buttonSkinGraybNew"
+                            ["name"] = "buttonSkinGreenNew"
                         }
                     },
                     ["type"] = "Button"
                 },
-                ["TakeoffButton"] = {
+                ["c2r1Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -206,7 +205,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["HoverButton"] = {
+                ["c2r2Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -228,7 +227,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["LandButton"] = {
+                ["c2r3Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -250,7 +249,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["AltitudeButton"] = {
+                ["c3r1Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -272,7 +271,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["KnotsButton"] = {
+                ["c3r2Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -294,7 +293,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["CourseButton"] = {
+                ["c3r3Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -316,7 +315,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["MmsButton"] = {
+                ["c2r4Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -338,7 +337,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["TurnRateButton"] = {
+                ["c1r1Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -350,7 +349,7 @@ dialog = {
                         ["tabOrder"] = 0,
                         ["text"] = "TURN",
                         ["tooltip"] = "",
-                        ["visible"] = true,
+                        ["visible"] = false,
                         ["zindex"] = 1
                     },
                     ["skin"] = {
@@ -360,7 +359,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["HudButton"] = {
+                ["c3r4Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -382,7 +381,7 @@ dialog = {
                     },
                     ["type"] = "Button"
                 },
-                ["OnoffButton"] = {
+                ["c4r4Button"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = buttonHeight,
@@ -399,99 +398,78 @@ dialog = {
                     },
                     ["skin"] = {
                         ["params"] = {
-                            ["name"] = "buttonSkinGreenNew"
+                            ["name"] = "buttonSkinGraybNew"
                         }
                     },
                     ["type"] = "Button"
                 },
-                ["CourseSlider"] = {
+                ["c4r3Button"] = {
                     ["params"] = {
                         ["bounds"] = {
-                            ["h"] = 24,
+                            ["h"] = buttonHeight,
                             ["w"] = buttonWidth,
                             ["x"] = column4,
-                            ["y"] = row3 + sliderVertOffset,
+                            ["y"] = row3
                         },
                         ["enabled"] = true,
-                        ["pageStep"] = 1, -- the distance it goes when you click the bar instead of the knob
-                        ["range"] = {
-                            ["max"] = 35, -- divided by 10 for bug prevention
-                            ["min"] = 0,
-                        },
-                        ["step"] = 1, -- the possible selectable number step when you drag the slider
                         ["tabOrder"] = 0,
-                        ["text"] = "",
-                        ["tooltip"] = "Course",
-                        ["value"] = 0,
+                        ["text"] = "ON/OFF",
+                        ["tooltip"] = "",
                         ["visible"] = true,
-                        ["zindex"] = 0,
+                        ["zindex"] = 1
                     },
                     ["skin"] = {
                         ["params"] = {
-                            ["name"] = "horzSliderSkin_options",
-                        },
+                            ["name"] = "buttonSkinGraybNew"
+                        }
                     },
-                    ["type"] = "HorzSlider",
+                    ["type"] = "Button"
                 },
-                ["KnotsSlider"] = {
+                ["c4r2Button"] = {
                     ["params"] = {
                         ["bounds"] = {
-                            ["h"] = 24,
+                            ["h"] = buttonHeight,
                             ["w"] = buttonWidth,
                             ["x"] = column4,
-                            ["y"] = row2 + sliderVertOffset,
+                            ["y"] = row2
                         },
                         ["enabled"] = true,
-                        ["pageStep"] = 1, -- the distance it goes when you click the bar instead of the knob
-                        ["range"] = {
-                            ["max"] = 11, -- max is 110 knots
-                            ["min"] = 1,  -- starts at 10 knots
-                        },
-                        ["step"] = 1,     -- the possible selectable number step when you drag the slider
                         ["tabOrder"] = 0,
-                        ["text"] = "",
-                        ["tooltip"] = "Knots",
-                        ["value"] = 1,
+                        ["text"] = "ON/OFF",
+                        ["tooltip"] = "",
                         ["visible"] = true,
-                        ["zindex"] = 0,
+                        ["zindex"] = 1
                     },
                     ["skin"] = {
                         ["params"] = {
-                            ["name"] = "horzSliderSkin_options",
-                        },
+                            ["name"] = "buttonSkinGraybNew"
+                        }
                     },
-                    ["type"] = "HorzSlider",
+                    ["type"] = "Button"
                 },
-                ["AltitudeSlider"] = {
+                ["c4r1Button"] = {
                     ["params"] = {
                         ["bounds"] = {
-                            ["h"] = 24,
+                            ["h"] = buttonHeight,
                             ["w"] = buttonWidth,
                             ["x"] = column4,
-                            ["y"] = row1 + sliderVertOffset,
+                            ["y"] = row1
                         },
                         ["enabled"] = true,
-                        ["pageStep"] = 1, -- the distance it goes when you click the bar instead of the knob
-                        ["range"] = {
-                            ["max"] = 27, -- the number of altitude options is 28.
-                            ["min"] = 0,  -- the above is 27 because it is zero based for math reasons
-                        },
-                        ["step"] = 1,     -- the possible selectable number step when you drag the slider
                         ["tabOrder"] = 0,
-                        ["text"] = "",
-                        ["tooltip"] = "Altitude",
-                        ["value"] = 0,
+                        ["text"] = "ON/OFF",
+                        ["tooltip"] = "",
                         ["visible"] = true,
-                        ["zindex"] = 0,
+                        ["zindex"] = 1
                     },
                     ["skin"] = {
                         ["params"] = {
-                            ["name"] = "horzSliderSkin_options",
-                        },
+                            ["name"] = "buttonSkinGraybNew"
+                        }
                     },
-                    ["type"] = "HorzSlider",
+                    ["type"] = "Button"
                 },
-                ["SlideSlider"] = {
+                ["SlideSlider"] = { --WIP
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = 24,
@@ -520,20 +498,20 @@ dialog = {
                     },
                     ["type"] = "HorzSlider",
                 },
-                ["CourseDial"] = {
+                ["ParameterDial"] = {
                     ["params"] = {
                         ["bounds"] = {
                             ["h"] = 45,
                             ["w"] = 45,
-                            ["x"] = column2 + dialHorzOffset,
-                            ["y"] = row5,
+                            ["x"] = column1 + dialHorzOffset,
+                            ["y"] = row1,
                         },
                         ["cyclic"] = true,
                         ["enabled"] = true,
                         ["pageStep"] = 10, -- default was 10
                         ["range"] = {
                             ["max"] = 360, -- default was 359
-                            ["min"] = 0,   -- default was 0
+                            ["min"] = 1,   -- default was 0
                         },
                         ["step"] = 10,     -- default was 1
                         ["tabOrder"] = 0,
@@ -588,98 +566,6 @@ dialog = {
                         },
                     },
                     ["type"] = "Dial",
-                },
-                --[[
-                ["CourseDialButton"] = { -- The North Up debug button. remove this when the REL/TRUE feature is complete
-                    ["params"] = {
-                        ["bounds"] = {
-                            ["h"] = buttonHeight,
-                            ["w"] = buttonWidth,
-                            ["x"] = column1,
-                            ["y"] = row5
-                        },
-                        ["enabled"] = true,
-                        ["tabOrder"] = 0,
-                        ["text"] = "N UP",
-                        ["tooltip"] = "",
-                        ["visible"] = true,
-                        ["zindex"] = 1
-                    },
-                    ["skin"] = {
-                        ["params"] = {
-                            ["name"] = "buttonSkinGraybNew"
-                        }
-                    },
-                    ["type"] = "Button"
-                },
-                --]]
-                --[[
-                ["CurrentHeadingButton"] = { -- remove this when the REL/TRUE feature is complete
-                    ["params"] = {
-                        ["bounds"] = {
-                            ["h"] = buttonHeight,
-                            ["w"] = buttonWidth,
-                            ["x"] = column1,
-                            ["y"] = row6
-                        },
-                        ["enabled"] = true,
-                        ["tabOrder"] = 0,
-                        ["text"] = "REL",
-                        ["tooltip"] = "",
-                        ["visible"] = true,
-                        ["zindex"] = 1
-                    },
-                    ["skin"] = {
-                        ["params"] = {
-                            ["name"] = "buttonSkinGraybNew"
-                        }
-                    },
-                    ["type"] = "Button"
-                },
-                --]]
-                ["TrueRelToggleButton"] = {
-                    ["params"] = {
-                        ["bounds"] = {
-                            ["h"] = buttonHeight,
-                            ["w"] = buttonWidth,
-                            ["x"] = column3,
-                            ["y"] = row5
-                        },
-                        ["enabled"] = true,
-                        ["tabOrder"] = 0,
-                        ["text"] = "TRUE/REL",
-                        ["tooltip"] = "",
-                        ["visible"] = true,
-                        ["zindex"] = 1
-                    },
-                    ["skin"] = {
-                        ["params"] = {
-                            ["name"] = "buttonSkinGraybNew"
-                        }
-                    },
-                    ["type"] = "Button"
-                },
-                ["NorthTrackButton"] = {
-                    ["params"] = {
-                        ["bounds"] = {
-                            ["h"] = buttonHeight,
-                            ["w"] = buttonWidth,
-                            ["x"] = column3,
-                            ["y"] = row6
-                        },
-                        ["enabled"] = true,
-                        ["tabOrder"] = 0,
-                        ["text"] = "HDG",
-                        ["tooltip"] = "",
-                        ["visible"] = true,
-                        ["zindex"] = 1
-                    },
-                    ["skin"] = {
-                        ["params"] = {
-                            ["name"] = "buttonSkinGraybNew"
-                        }
-                    },
-                    ["type"] = "Button"
                 },
                 ["c5r1Button"] = {
                     ["params"] = {
