@@ -719,16 +719,16 @@ local function loadKIOWAUI()
                 end
             end
         )
-        RouteButton:addMouseDownCallback(
+        RouteButton:addMouseDownCallback( -- TODO check if logic correct
             function(self)
                 if isRouteMode == 0 then
                     isRouteMode = 1
-                    AIpress(14) -- route
-                    RouteButton:setText("ROUTE")
+                    AIpress(14) -- route pt
+                    RouteButton:setText("PLAN")
                 else
                     isRouteMode = 0
                     AIpress(15) -- flight plan
-                    RouteButton:setText("PLAN")
+                    RouteButton:setText("ROUTE PT")
                 end
             end
         )
@@ -826,7 +826,7 @@ local function loadKIOWAUI()
     end
 
     local function setAllText()
-        RouteButton:setText("RTE/PLAN")
+        RouteButton:setText("RTE/POINT")
         TurnRateButton:setText("TURN RATE")
         BaroButton:setText("BARO/RAD")
         SizeButton:setText("RESIZE")
