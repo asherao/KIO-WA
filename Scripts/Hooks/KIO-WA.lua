@@ -152,7 +152,7 @@ local function loadKIOWAUI()
     local row1 = 0
     local row2 = rowSpacing + row1
     local isBaroMode = 0
-    local isLeftMode = 0
+    local isRightMode = 0
     local isRouteMode = 0
     local windowSize = 1   -- 0 compact;1 full;3 expanded. TODO have this be saved in the config file
     local turnRateMode = 2 -- 0 slow;1 medium;2 fast
@@ -630,33 +630,33 @@ local function loadKIOWAUI()
         LeftRightToggleButton:addMouseDownCallback(
             function(self)
                 LeftRightToggleButton:setText("LEFT/RIGHT") -- ▶◀
-                if isLeftMode == 0 then
-                    OrbitButton:setText(" Orbit ▶")
-                    TurnButton:setText(" Turn ▶")
-                    DriftHoverButton:setText(" Hover ▶")
-                    isLeftMode = 1
-                else
+                if isRightMode == 0 then
                     OrbitButton:setText("◀ Orbit ")
                     TurnButton:setText("◀ Turn ")
                     DriftHoverButton:setText("◀ Hover ")
-                    isLeftMode = 0
+                    isRightMode = 1
+                else
+                    OrbitButton:setText(" Orbit ▶")
+                    TurnButton:setText(" Turn ▶")
+                    DriftHoverButton:setText(" Hover ▶")
+                    isRightMode = 0
                 end
             end
         )
 
         OrbitButton:addMouseDownCallback(
             function(self)
-                if isLeftMode == 0 then
-                    AIpress(16)
+                if isRightMode == 0 then
+                    AIpress(16) -- right
                 else
-                    AIpress(17)
+                    AIpress(17) -- left
                 end
             end
         )
 
         TurnButton:addMouseDownCallback(
             function(self)
-                if isLeftMode == 0 then
+                if isRightMode == 0 then
                     -- TODO
                 else
                     -- TODO
@@ -665,7 +665,7 @@ local function loadKIOWAUI()
         )
         DriftHoverButton:addMouseDownCallback(
             function(self)
-                if isLeftMode == 0 then
+                if isRightMode == 0 then
                     -- TODO
                 else
                     -- TODO
