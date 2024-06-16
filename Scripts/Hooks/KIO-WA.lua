@@ -724,11 +724,11 @@ local function loadKIOWAUI()
                 if isRouteMode == 0 then
                     isRouteMode = 1
                     AIpress(14) -- route pt
-                    RouteButton:setText("PLAN")
+                    RouteButton:setText("NXT POINT")
                 else
                     isRouteMode = 0
                     AIpress(15) -- flight plan
-                    RouteButton:setText("ROUTE PT")
+                    RouteButton:setText("FLT PLAN")
                 end
             end
         )
