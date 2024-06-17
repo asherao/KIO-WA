@@ -8,13 +8,9 @@
 
 --[[
     Future Feature Goals:
-    - Have NORTH UP or TRACK UP be displayed on spawn instead of having to click it once
-    - Change the default hotkey. Cpuld have that in the window title or title tooltip
+    - Change the default hotkey.
     - Show/Hide keybinds
     - Make a minimum window size
-    - Have the "land" command bypass polychop's requirement to hover then land.
-    - experement using one contril (the dial) for speed, alt, and course
-    - talk about the config file for adjustments
     - Add more commands such as
     -- Increase/Decrease speed
     -- Hover Drift Left/Right
@@ -25,77 +21,24 @@
     - If orbit is pressed and the aircraft is going slower than 10 kts,
     -- then order 10 kts and then order orbit.
 
-    - Aircraft Detection - When the player is not flying the Kiowa, the
-    GUI is hidden
-
-    -----------------------------------------------
-    |Left/Right|PLAN  |TAKEOFF|ALTITUDE|--SLIDER--|
-    |🢀Orbit   |ROUTE |HOVER  |SPEED   |--SLIDER--|
-    |🢀Heading |BARO  |LAND   |COURSE  |--SLIDER--|
-    |🢀Hover   |RADALT|HDG2MMS|HUD     |  ON/OFF  |
-    -----------------------------------------------
-    -- The direction of the arrow changes when "Left/Right" is clicked
-    -- This systems reduces the number of buttons from 6 to 4, not including
-    -- another row/column for the labels. Overall, seems like a good idea.
-    ------------
-    |Left/Right| (shorten to L/R?)
-    |Orbit🢂   |
-    |Heading🢂 |
-    |Hover🢂   |
-    ------------
     - Make everything "modular" (good luck) so that ppl can pick which "modules"
     they want to use. Would this feature go well in a Special Options menu? It is
     easy to make the modules, but having them tile properly may be the more difficult
     issue to solve.
     - Remove the margin gap at the top and sides of groups of buttons/controls
-    - Remove Barundus' name. Sorry.
+--]]
+
+--[[
+    TODO:
+    - Cleanup scroll wheel version
 --]]
 
 --[[
     Bugs:
-    - Fix TRACK/NORTH up toggle
-    - Fix altitude clicked
-    - Fix the 000/360 twitch for the headings
-    - Why does course 050 result in 050, but Barundus says "Heading 360"? (Polychop bug?)
 --]]
 
 --[[
 Pretty pictures:
-    -----------------------------------------------
-    |Left/Right|PLAN  |TAKEOFF|ALTITUDE|--SLIDER--|
-    |🢀Orbit   |ROUTE |HOVER  |SPEED   |--SLIDER--|
-    |🢀Heading |BARO  |LAND   |COURSE  |--SLIDER--|
-    |🢀Hover   |RADALT|HDG2MMS|HUD     |  ON/OFF  |
-    -----------------------------------------------
-
-    Expanded:
-    ----------------------------------------------------
-    |Left/Right|PLAN/ROUTE|TAKEOFF|NORTH/TRACK|DIAL    |
-    |🢀Orbit   |BARO/ALT  |HOVER  |COURSE     |DIAL    |
-    |🢀Heading |TURN RATE |LAND   |SPEED      |ALTITUDE|
-    |🢀Hover   |   ???    |HDG2MMS|HUD        | ON|OFF |
-    ----------------------------------------------------
-
-    Full:
-    -----------------------------------------
-    |PLAN/ROUTE|TAKEOFF|NORTH/TRACK|DIAL    |
-    |BARO/ALT  |HOVER  |COURSE     |DIAL    |
-    |TURN RATE |LAND   |SPEED      |ALTITUDE|
-    |   ???    |HDG2MMS|HUD        | ON|OFF |
-    -----------------------------------------
-
-     Compact:
-    ------------------------------
-    |TAKEOFF|NORTH/TRACK|DIAL    |
-    |HOVER  |COURSE     |DIAL    |
-    |LAND   |SPEED      |ALTITUDE|
-    |HDG2MMS|HUD        | ON|OFF |
-    ------------------------------
-
-I guess that if flip everything, all I would have to do
-to toggle between Expanded, Full, and Compact is to change the window size and/or make
-the different elements visible. Therefore:
-
     Expanded:
     ----------------------------------------------------
     |DIAL    |NORTH/TRACK|TAKEOFF|PLAN/ROUTE|LEFT/RIGHT|
@@ -317,7 +260,7 @@ local function loadKIOWAUI()
         AltitudeButton = panel.c1r3Button
         KnotsButton = panel.c2r3Button
         ParameterDial = panel.ParameterDial
-        TrueRelToggleButton = panel.c2r1Button
+        RelativeCrsButton = panel.c2r1Button
         NorthTrackButton = panel.c2r2Button
 
         --new nomenclature format test for the 5th column
@@ -351,23 +294,13 @@ local function loadKIOWAUI()
         window:addPositionCallback(handleMove)
         window:setVisible(true)
 
-
-        local function toggleNorthOrTrack()
-            if isNorthUp == 1 then                      -- if calculating with True
-                isNorthUp = 0                           -- change the bool, becuase we wanna toggle to relative
-                TrueRelToggleButton:setText("TRACK UP") -- change the text to reflect the bool change
-            else                                        -- if reference was 0
-                isNorthUp = 1                           -- make it the opposite
-                TrueRelToggleButton:setText("NORTH UP") -- set the text for the button
-            end
-        end
-
         function NorthTrackButtonClicked()
             local displayedDirection = NorthTrackButton:getText()
             -- TODO make a catch for someone pressing it before the dial used
             -- strip out degree sign and leading 0s
-            displayedDirection = displayedDirection:gsub('°', '') -- removes the degrees symbol
-            displayedDirection = tonumber(displayedDirection)     -- removes the leading zero, if any
+            displayedDirection = displayedDirection:gsub('°', '')  -- removes the degrees symbol
+            displayedDirection = displayedDirection:gsub(' T', '') -- removes T for True
+            displayedDirection = tonumber(displayedDirection)      -- removes the leading zero, if any
             -- this handes the case where the button may display 360, which is actually 000
             -- it is needed for the then following commandButton math
             if displayedDirection == 360 then displayedDirection = 0 end
@@ -376,201 +309,34 @@ local function loadKIOWAUI()
             Export.GetDevice(18):performClickableAction(commandButton, 1)
         end
 
-        local function UpdateKts()
-            -- there are 11 different speed commands. the dial is 0 to 360 degrees.
-            -- each speed gets about 11/360th of the pie. That deterines what is shows
-            -- on the button and which command is sent.
-            local dialValue = ParameterDial:getValue()
-            if dialValue < 33 then
-                KnotsButton:setText("10 kts")
-            elseif dialValue < (33 * 2) then
-                KnotsButton:setText("20 kts")
-            elseif dialValue < (33 * 3) then
-                KnotsButton:setText("30 kts")
-            elseif dialValue < (33 * 4) then
-                KnotsButton:setText("40 kts")
-            elseif dialValue < (33 * 5) then
-                KnotsButton:setText("50 kts")
-            elseif dialValue < (33 * 6) then
-                KnotsButton:setText("60 kts")
-            elseif dialValue < (33 * 7) then
-                KnotsButton:setText("70 kts")
-            elseif dialValue < (33 * 8) then
-                KnotsButton:setText("80 kts")
-            elseif dialValue < (33 * 9) then
-                KnotsButton:setText("90 kts")
-            elseif dialValue < (33 * 10) then
-                KnotsButton:setText("100 kts")
-            else
-                KnotsButton:setText("110 kts")
+        function TrackUpButtonClicked()
+            local displayedDirection = RelativeCrsButton:getText()
+            -- TODO make a catch for someone pressing it before the dial used
+            -- strip out degree sign and leading 0s
+            local turnDirection = 0
+            if string.find(displayedDirection, "L") then
+                turnDirection = 1
             end
-        end
 
-        local function changeKts()
-            -- there are 11 different speed commands. the dial is 0 to 360 degrees.
-            -- each speed gets about 11/360th of the pie. That deterines what is shows
-            -- on the button and which command is sent.
-            local dialValue = ParameterDial:getValue()
-            local sliderValue
-            if dialValue < 33 then
-                sliderValue = 0
-            elseif dialValue < (33 * 2) then
-                sliderValue = 1
-            elseif dialValue < (33 * 3) then
-                sliderValue = 2
-            elseif dialValue < (33 * 4) then
-                sliderValue = 3
-            elseif dialValue < (33 * 5) then
-                sliderValue = 4
-            elseif dialValue < (33 * 6) then
-                sliderValue = 5
-            elseif dialValue < (33 * 7) then
-                sliderValue = 6
-            elseif dialValue < (33 * 8) then
-                sliderValue = 7
-            elseif dialValue < (33 * 9) then
-                sliderValue = 8
-            elseif dialValue < (33 * 10) then
-                sliderValue = 9
-            else
-                sliderValue = 41
-            end
-            local commandButton = 3000 + 20 + sliderValue + 1 -- plus 1 bc oops.
+
+            displayedDirection = displayedDirection:gsub('°', '')    -- removes the degrees symbol
+            displayedDirection = displayedDirection:gsub(' REL', '') -- removes REL for relative
+            displayedDirection = displayedDirection:gsub(' R', '')   -- removes REL for relative
+            displayedDirection = displayedDirection:gsub(' L', '')   -- removes REL for relative
+            displayedDirection = tonumber(displayedDirection)        -- removes the leading zero, if any
+
+            if turnDirection == 1 then displayedDirection = math.abs(displayedDirection - 360) end
+
+            local hdgRad = Export.LoGetMagneticYaw()  -- this is magnetic yaw/hdg in radians TOOO: may have to movethis
+            -- to every fram
+            local hdgDeg = math.abs(math.deg(hdgRad)) -- radians to degrees. formula is xdeg = rad(180/pi)
+            -- Now, make thte button turn to relative. relative = absolute heading + arrow direction
+            local hdgRelative = hdgDeg + displayedDirection
+            if hdgRelative > 360 then hdgRelative = hdgRelative - 360 end -- account for numbers past 360 degrees
+            if hdgRelative == 0 then hdgRelative = 360 end                -- just here bc Barundus says 360
+            local commandButton = 3000 + 66 + (hdgRelative / 10)          -- divided by 10 to allow equation
             Export.GetDevice(18):performClickableAction(commandButton, 1)
         end
-
-        function UpdateAlt() -- 28 entries
-            if ParameterDial:getValue() < (13 * 1) then
-                AltitudeButton:setText("10 ft")
-            elseif ParameterDial:getValue() < (13 * 2) then
-                AltitudeButton:setText("20 ft")
-            elseif ParameterDial:getValue() < (13 * 3) then
-                AltitudeButton:setText("30 ft")
-            elseif ParameterDial:getValue() < (13 * 4) then
-                AltitudeButton:setText("40 ft")
-            elseif ParameterDial:getValue() < (13 * 5) then
-                AltitudeButton:setText("50 ft")
-            elseif ParameterDial:getValue() < (13 * 6) then
-                AltitudeButton:setText("60 ft")
-            elseif ParameterDial:getValue() < (13 * 7) then
-                AltitudeButton:setText("70 ft")
-            elseif ParameterDial:getValue() < (13 * 8) then
-                AltitudeButton:setText("80 ft")
-            elseif ParameterDial:getValue() < (13 * 9) then
-                AltitudeButton:setText("90 ft")
-            elseif ParameterDial:getValue() < (13 * 10) then
-                AltitudeButton:setText("100 ft")
-            elseif ParameterDial:getValue() < (13 * 11) then
-                AltitudeButton:setText("200 ft")
-            elseif ParameterDial:getValue() < (13 * 12) then
-                AltitudeButton:setText("300 ft")
-            elseif ParameterDial:getValue() < (13 * 13) then
-                AltitudeButton:setText("400 ft")
-            elseif ParameterDial:getValue() < (13 * 14) then
-                AltitudeButton:setText("500 ft")
-            elseif ParameterDial:getValue() < (13 * 15) then
-                AltitudeButton:setText("600 ft")
-            elseif ParameterDial:getValue() < (13 * 16) then
-                AltitudeButton:setText("700 ft")
-            elseif ParameterDial:getValue() < (13 * 17) then
-                AltitudeButton:setText("800 ft")
-            elseif ParameterDial:getValue() < (13 * 18) then
-                AltitudeButton:setText("900 ft")
-            elseif ParameterDial:getValue() < (13 * 19) then
-                AltitudeButton:setText("1000 ft")
-            elseif ParameterDial:getValue() < (13 * 20) then
-                AltitudeButton:setText("2000 ft")
-            elseif ParameterDial:getValue() < (13 * 21) then
-                AltitudeButton:setText("3000 ft")
-            elseif ParameterDial:getValue() < (13 * 22) then
-                AltitudeButton:setText("4000 ft")
-            elseif ParameterDial:getValue() < (13 * 23) then
-                AltitudeButton:setText("5000 ft")
-            elseif ParameterDial:getValue() < (13 * 24) then
-                AltitudeButton:setText("6000 ft")
-            elseif ParameterDial:getValue() < (13 * 25) then
-                AltitudeButton:setText("7000 ft")
-            elseif ParameterDial:getValue() < (13 * 26) then
-                AltitudeButton:setText("8000 ft")
-            elseif ParameterDial:getValue() < (13 * 27) then
-                AltitudeButton:setText("9000 ft")
-            else
-                AltitudeButton:setText("10000 ft")
-            end
-        end
-
-        function ChangeAlt()
-            local value
-            if ParameterDial:getValue() < (13 * 1) then
-                value = 1
-            elseif ParameterDial:getValue() < (13 * 2) then
-                value = 2
-            elseif ParameterDial:getValue() < (13 * 3) then
-                value = 3
-            elseif ParameterDial:getValue() < (13 * 4) then
-                value = 4
-            elseif ParameterDial:getValue() < (13 * 5) then
-                value = 5
-            elseif ParameterDial:getValue() < (13 * 6) then
-                value = 6
-            elseif ParameterDial:getValue() < (13 * 7) then
-                value = 7
-            elseif ParameterDial:getValue() < (13 * 8) then
-                value = 8
-            elseif ParameterDial:getValue() < (13 * 9) then
-                value = 9
-            elseif ParameterDial:getValue() < (13 * 10) then
-                value = 10
-            elseif ParameterDial:getValue() < (13 * 11) then
-                value = 11
-            elseif ParameterDial:getValue() < (13 * 12) then
-                value = 12
-            elseif ParameterDial:getValue() < (13 * 13) then
-                value = 13
-            elseif ParameterDial:getValue() < (13 * 14) then
-                value = 14
-            elseif ParameterDial:getValue() < (13 * 15) then
-                value = 15
-            elseif ParameterDial:getValue() < (13 * 16) then
-                value = 16
-            elseif ParameterDial:getValue() < (13 * 17) then
-                value = 17
-            elseif ParameterDial:getValue() < (13 * 18) then
-                value = 18
-            elseif ParameterDial:getValue() < (13 * 19) then
-                value = 19
-            elseif ParameterDial:getValue() < (13 * 20) then
-                value = 20
-            elseif ParameterDial:getValue() < (13 * 21) then
-                value = 21
-            elseif ParameterDial:getValue() < (13 * 22) then
-                value = 22
-            elseif ParameterDial:getValue() < (13 * 23) then
-                value = 23
-            elseif ParameterDial:getValue() < (13 * 24) then
-                value = 24
-            elseif ParameterDial:getValue() < (13 * 25) then
-                value = 25
-            elseif ParameterDial:getValue() < (13 * 26) then
-                value = 26
-            elseif ParameterDial:getValue() < (13 * 27) then
-                value = 27
-            else
-                value = 28
-            end
-            local commandButton = 3000 + 30 + value
-            Export.GetDevice(18):performClickableAction(commandButton, 1)
-        end
-
-        --[[
-        function changeAltitude() -- to be updated to dial model
-            local dialValue = ParameterDial:getValue()
-            local commandButton = 3000 + 31 + dialValue
-            Export.GetDevice(18):performClickableAction(commandButton, 1)
-        end
-        --]]
-
-
 
         function AIpress(button) -- this function presses the appropiate AI button
             local commandButton = button + 3000
@@ -654,22 +420,32 @@ local function loadKIOWAUI()
             end
         )
 
-        TurnButton:addMouseDownCallback(
-            function(self)
+        TurnButton:addMouseWheelCallback(
+            function(self, x, y, clicks)
+                --[[ -- WIP
                 if isRightMode == 0 then
-                    -- TODO
+                    -- TODO heading left 103, -0.1
+                    Export.GetDevice(18):performClickableAction(103, -1)
                 else
                     -- TODO
+                    Export.GetDevice(18):performClickableAction(103, 1)
                 end
+                --]]
             end
         )
-        DriftHoverButton:addMouseDownCallback(
-            function(self)
+        DriftHoverButton:addMouseWheelCallback(
+            function(self, x, y, clicks)
+                --[[ -- WIP
                 if isRightMode == 0 then
                     -- TODO
+                    -- left
+                    Export.GetDevice(18):performClickableAction(107, 1)
                 else
                     -- TODO
+                    -- right
+                    Export.GetDevice(18):performClickableAction(106, 1)
                 end
+                --]]
             end
         )
 
@@ -719,7 +495,8 @@ local function loadKIOWAUI()
                 end
             end
         )
-        RouteButton:addMouseDownCallback( -- TODO check if logic correct
+
+        RouteButton:addMouseDownCallback( -- TODO check if logic correct, testing
             function(self)
                 if isRouteMode == 0 then
                     isRouteMode = 1
@@ -732,47 +509,214 @@ local function loadKIOWAUI()
                 end
             end
         )
-        OnoffButton:addMouseDownCallback(
+        --[[
+        OnoffButton:addMouseDownCallback( --testing
+            function(self, x, y, button)
+                if button == 1 then
+                    logFile:write("Button01 pressed|") -- left click
+                elseif button == 2 then
+                    logFile:write("Button02 pressed|") -- middle click
+                elseif button == 3 then
+                    logFile:write("Button03 pressed|") -- right click
+                else
+                    logFile:write("Buttonelse pressed|")
+                end
+            end
+        )
+            --]]
+
+        OnoffButton:addMouseDownCallback( --testing
             function(self)
                 AIpress(7)
             end
         )
+
         AltitudeButton:addMouseDownCallback(
             function(self)
-                ChangeAlt()
-                --changeAltitude()
+                local alt = { "10 ft", "20 ft", "30 ft", "40 ft", "50 ft", "60 ft",
+                    "70 ft", "80 ft", "90 ft", "100 ft", "200 ft", "300 ft", "400 ft", "500 ft", "600 ft",
+                    "700 ft", "800 ft", "900 ft", "1000 ft", "2000 ft", "3000 ft", "4000 ft", "5000 ft", "6000 ft",
+                    "7000 ft", "8000 ft", "9000 ft", "10000 ft" } -- 28 entries
+                for i = 1, #alt, 1 do
+                    if AltitudeButton:getText() == alt[i] then
+                        local commandButton = 3000 + 30 + i
+                        Export.GetDevice(18):performClickableAction(commandButton, 1)
+                    end
+                end
+            end
+        )
+        AltitudeButton:addMouseWheelCallback(
+            function(self, x, y, clicks)
+                --create array to type less
+                local alt = { "10 ft", "20 ft", "30 ft", "40 ft", "50 ft", "60 ft",
+                    "70 ft", "80 ft", "90 ft", "100 ft", "200 ft", "300 ft", "400 ft", "500 ft", "600 ft",
+                    "700 ft", "800 ft", "900 ft", "1000 ft", "2000 ft", "3000 ft", "4000 ft", "5000 ft", "6000 ft",
+                    "7000 ft", "8000 ft", "9000 ft", "10000 ft" } -- 28 entries
+                local shownAltitude = AltitudeButton:getText()
+                if clicks == 1 then
+                    for i = 1, #alt - 1, 1 do -- starting at 1, do 27 times, in increments of 1
+                        if alt[i] == shownAltitude then
+                            AltitudeButton:setText(alt[i + 1])
+                        end
+                    end
+                    -- roll to the start
+                    if shownAltitude == alt[#alt] then
+                        AltitudeButton:setText(alt[1])
+                    end
+                end
+
+                if clicks == -1 then
+                    for i = #alt, 2, -1 do
+                        if alt[i] == shownAltitude then
+                            AltitudeButton:setText(alt[i - 1])
+                        end
+                    end
+                    -- roll to the start
+                    if shownAltitude == alt[1] then
+                        AltitudeButton:setText(alt[#alt])
+                    end
+                end
             end
         )
         KnotsButton:addMouseDownCallback(
             function(self)
-                changeKts()
+                local speeds = { "10 kts", "20 kts", "30 kts", "40 kts", "50 kts", "60 kts",
+                    "70 kts", "80 kts", "90 kts", "100 kts", "110 kts" } -- 11 entries
+
+                for i = 1, #speeds, 1 do
+                    if KnotsButton:getText() == speeds[i] then
+                        if speeds[i] == "110 kts" then i = 41 end
+                        local commandButton = 3000 + 20 + i
+                        Export.GetDevice(18):performClickableAction(commandButton, 1)
+                    end
+                end
             end
         )
+        KnotsButton:addMouseWheelCallback( -- TODO check if logic correct, testing
+            function(self, x, y, clicks)
+                --create array to type less
+                local kts = { "10 kts", "20 kts", "30 kts", "40 kts", "50 kts", "60 kts",
+                    "70 kts", "80 kts", "90 kts", "100 kts", "110 kts" } -- 11 entries
 
+                local shownKts = KnotsButton:getText()
+                if clicks == 1 then
+                    for i = 1, #kts - 1, 1 do -- starting at 1, do 27 times, in increments of 1
+                        if kts[i] == shownKts then
+                            KnotsButton:setText(kts[i + 1])
+                        end
+                    end
+                    -- roll to the start
+                    if shownKts == kts[#kts] then
+                        KnotsButton:setText(kts[1])
+                    end
+                end
 
-
-        TrueRelToggleButton:addMouseDownCallback(
+                if clicks == -1 then
+                    for i = #kts, 2, -1 do
+                        if kts[i] == shownKts then
+                            KnotsButton:setText(kts[i - 1])
+                        end
+                    end
+                    -- roll to the start
+                    if shownKts == kts[1] then
+                        KnotsButton:setText(kts[#kts])
+                    end
+                end
+            end
+        )
+        RelativeCrsButton:addMouseDownCallback(
             function(self)
-                toggleNorthOrTrack()
+                TrackUpButtonClicked()
             end
         )
+
+        RelativeCrsButton:addMouseWheelCallback(
+            function(self, x, y, clicks)
+                local crs = { "000° REL", "010° R", "020° R", "030° R", "040° R", "050° R", "060° R", "070° R", "080° R",
+                    "090° R",
+                    "100° R", "110° R",
+                    "120° R", "130° R", "140° R", "150° R", "160° R", "170° R", "180° REL", "170° L", "160° L",
+                    "150° L", "140° L", "130° L", "120° L", "110° L", "100° L", "090° L", "080° L", "070° L", "060° L",
+                    "050° L", "040° L", "030° L", "020° L", "010° L" }
+
+
+                local shownCrs = RelativeCrsButton:getText()
+                if clicks == 1 then
+                    for i = 1, #crs - 1, 1 do -- starting at 1, do 27 times, in increments of 1
+                        if crs[i] == shownCrs then
+                            RelativeCrsButton:setText(crs[i + 1])
+                        end
+                    end
+                    -- roll to the start
+                    if shownCrs == crs[#crs] then
+                        RelativeCrsButton:setText(crs[1])
+                    end
+                end
+
+                if clicks == -1 then
+                    for i = #crs, 2, -1 do
+                        if crs[i] == shownCrs then
+                            RelativeCrsButton:setText(crs[i - 1])
+                        end
+                    end
+                    -- roll to the start
+                    if shownCrs == crs[1] then
+                        RelativeCrsButton:setText(crs[#crs])
+                    end
+                end
+            end
+        )
+
         NorthTrackButton:addMouseDownCallback(
             function(self)
                 NorthTrackButtonClicked()
             end
         )
-        ParameterDial:addChangeCallback(
-            function(self)
-                UpdateAlt()
-                UpdateCrs()
-                UpdateKts()
-                --OnoffButton:setText(ParameterDial:getValue()) -- debug  `
+        NorthTrackButton:addMouseWheelCallback(
+            function(self, x, y, clicks)
+                local crs = { "010° T", "020° T", "030° T", "040° T", "050° T", "060° T", "070° T", "080° T", "090° T",
+                    "100° T", "110° T",
+                    "120° T", "130° T", "140° T", "150° T", "160° T", "170° T", "180° T", "190° T", "200° T", "210° T",
+                    "220° T", "230° T",
+                    "240° T", "250° T",
+                    "260° T", "270° T", "280° T", "290° T", "300° T", "310° T", "320° T", "330° T", "340° T", "350° T",
+                    "360° T" }
+
+                local shownCrs = NorthTrackButton:getText()
+                if clicks == 1 then
+                    for i = 1, #crs - 1, 1 do -- starting at 1, do 27 times, in increments of 1
+                        if crs[i] == shownCrs then
+                            NorthTrackButton:setText(crs[i + 1])
+                        end
+                    end
+                    -- roll to the start
+                    if shownCrs == crs[#crs] then
+                        NorthTrackButton:setText(crs[1])
+                    end
+                end
+
+                if clicks == -1 then
+                    for i = #crs, 2, -1 do
+                        if crs[i] == shownCrs then
+                            NorthTrackButton:setText(crs[i - 1])
+                        end
+                    end
+                    -- roll to the start
+                    if shownCrs == crs[1] then
+                        NorthTrackButton:setText(crs[#crs])
+                    end
+                end
             end
         )
 
-
-
-
+        ParameterDial:addChangeCallback(
+            function(self)
+                --UpdateAlt()
+                --UpdateCrs() -- testing change to course buttin behaviour
+                --UpdateKts()
+                --OnoffButton:setText(ParameterDial:getValue()) -- debug  `
+            end
+        )
         --[[
 --Example
         window:addHotKeyCallback(
@@ -785,7 +729,6 @@ local function loadKIOWAUI()
             end
         )
 --]]
-
 
         if config.hideOnLaunch then
             hide()
@@ -837,10 +780,10 @@ local function loadKIOWAUI()
 
         HudButton:setText("HUD")
         OnoffButton:setText("ON/OFF")
-        AltitudeButton:setText("ALT")
-        KnotsButton:setText("KTS")
-        TrueRelToggleButton:setText("TRK/NORTH")
-        NorthTrackButton:setText("000") -- having this say CRS is breaking things
+        AltitudeButton:setText("10 ft")
+        KnotsButton:setText("10 kts")         -- or KTS
+        RelativeCrsButton:setText("000° REL") -- 010° L or 010° R
+        NorthTrackButton:setText("360° T")    -- having this say CRS is breaking things
 
         --new nomenclature format test for the 5th column
         LeftRightToggleButton:setText("LEFT/RIGHT")
@@ -881,14 +824,15 @@ local function loadKIOWAUI()
             setAllText() -- sets the default button text for the app
         end
 
-        UpdateCrs()
+        -- dont update for NORTH UP
+        -- update for TRACK UP
+        --UpdateCrs() -- testing for a scrool wheel course
     end
 
     function handler.onMissionLoadEnd()
         inMission = true
         setAllText() -- sets the default button text for the app
         -- Configure North/Track up button text
-        --toggleNorthOrTrack()
         -- TODO After testing, moveto own function
         --aircraftDetection()
         --function aircraftDetection()
