@@ -125,9 +125,9 @@ dialog = {
                         },
                         ["enabled"] = true,
                         ["tabOrder"] = 0,
-                        ["text"] = "ROUTE",
+                        ["text"] = "c1r2",
                         ["tooltip"] = "",
-                        ["visible"] = false,
+                        ["visible"] = true,
                         ["zindex"] = 1
                     },
                     ["skin"] = {
@@ -178,7 +178,7 @@ dialog = {
                     },
                     ["skin"] = {
                         ["params"] = {
-                            ["name"] = "buttonSkinGreenNew"
+                            ["name"] = "buttonSkinGraybNew"
                         }
                     },
                     ["type"] = "Button"
@@ -347,14 +347,14 @@ dialog = {
                         },
                         ["enabled"] = true,
                         ["tabOrder"] = 0,
-                        ["text"] = "TURN",
+                        ["text"] = "c1r1",
                         ["tooltip"] = "",
-                        ["visible"] = false,
+                        ["visible"] = true,
                         ["zindex"] = 1
                     },
                     ["skin"] = {
                         ["params"] = {
-                            ["name"] = "buttonSkinGraybNew"
+                            ["name"] = "buttonSkinGreenNew"
                         }
                     },
                     ["type"] = "Button"
@@ -518,7 +518,7 @@ dialog = {
                         ["text"] = "",
                         ["tooltip"] = "",
                         ["value"] = 0, -- default was 0
-                        ["visible"] = true,
+                        ["visible"] = false,
                         ["zindex"] = 0,
                     },
                     ["skin"] = {
