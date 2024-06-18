@@ -5,6 +5,11 @@ It also frees up keybinds and HOTAS buttons. Download the most recent stable rel
 
 ![kio-wav0 4](https://github.com/asherao/KIO-WA/assets/15984377/20a3e05e-bc59-4cdb-b2f0-8e877d6d0f40)
 
+- Left click a button to confirm or cycle its options
+- Use mouse scroll wheel to change altotude, speed, and course
+- Left/right click orbit to left/right orbit
+- Middle mouse click orbit to fly straigh when in an orbit
+
 I encourage adding your own innovations to this utility and sharing your creation and modifications with the community. 
 
 Old Demo Video On YouTube (click)
