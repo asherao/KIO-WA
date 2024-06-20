@@ -7,14 +7,13 @@
 --]]
 
 --[[ Future Feature Goals:
-    - Change the default hotkey
-    - Make a minimum window size
+    - Change the default hotkeys(?)
+    - Make a minimum window size during resize
     - Add more commands such as
     -- Increase/Decrease speed
     -- Hover Drift Left/Right
     -- Increase/Decrease altitude
     -- Adjust heading left/right
-    -- may want to split on/off into 2 smaller buttons
     - research the possibility of using hardware buttons to toggle the GUI
     - Make everything "modular" (good luck) so that ppl can pick which "modules"
     they want to use. Would this feature go well in a Special Options menu? It is
@@ -25,7 +24,7 @@
 
 --[[Bugs:
     - When using the relative heading feature, it seems that turning
-    right will may in 10 less expected degrees
+    right may result in 10 less expected degrees
 --]]
 
 --[[Change Notes:
@@ -39,11 +38,20 @@
     - Made a different button green
     - Added lots of notes and comments
     - Left/Right, Turn, and Drift are still nonfunctional
+
+    v0.5
+    - Hide on Launch option is available via the config file
+    - App window will no longer automatically re-show itself after game is resumed
+    - Heading 2 Face offset is available via the config file. Positive values are right, negative values are left, in degrees.
+    - Aircraft will fly straight when Course/Route button middle mouse clicked (DCS-ism workaround)
+    - Hotkeys cand be chnged via the config file
+    - Fixed a condition where when 000/360 was commanded, Barundus would set heading to MMS instead
+    - If you set the app window to be too big or small, it will be juuust right on the next restart
 -]]
 
 --[[Pretty pictures:
     Template:
-    c = colimn, r = row
+    c = column, r = row
     ------------------------------------
     | c1r1 | c2r1 | c3r1 | c4r1 | c5r1 |
     | c1r2 | c2r2 | c3r2 | c4r2 | c5r2 |
@@ -106,12 +114,11 @@ local function loadKIOWAUI()
     local rowSpacing = buttonHeight * 0.8
     local row1 = 0
     local row2 = rowSpacing + row1
-    local isBaroMode = 0
-    local isRightMode = 0
-    local isRouteMode = 0
+    local isBaroMode = false
+    local isRightMode = false
+    local isRouteMode = false
     local windowSize = 1   -- 0 compact;1 full;3 expanded. TODO have this be saved in the config file
     local turnRateMode = 2 -- 0 slow;1 medium;2 fast
-    local isNorthUp = 0    -- a mode for toggleing buttons. may no longer be required
 
     -- the show/hide hotkey text. beta. may change in future
     -- to be what the user set it as
@@ -157,11 +164,13 @@ local function loadKIOWAUI()
         else
             log("Configuration not found, creating defaults...")
             config = {
-                hotkey          = "Ctrl+Shift+F9",      -- show/hide
-                windowPosition  = { x = 50, y = 50 },   -- default values should be on screen for any resolution
-                windowSize      = { w = 253, h = 132 }, -- the window till I got something that looked ok
-                hideOnLaunch    = false,
-                Head2FaceHotkey = "Ctrl+Shift+F10",     -- enables the function via hotkey
+                hideToggleHotkey = "Ctrl+Shift+F9",      -- show/hide
+                windowPosition   = { x = 50, y = 50 },   -- default values should be on screen for any resolution
+                windowSize       = { w = 253, h = 132 }, -- the window till I got something that looked ok
+                hideOnLaunch     = false,
+                Head2FaceHotkey  = "Ctrl+Shift+F10",     -- enables the function via hotkey
+                Head2FaceOffset  = 30,                   -- this determines if the head2face features is offset by the user
+                -- positve values are to the right, negatve values to the left. In degrees.
             }
             saveConfiguration()
         end
@@ -179,7 +188,7 @@ local function loadKIOWAUI()
     local function handleResize(self)
         local w, h = self:getSize()
 
-        panel:setBounds(0, 0, w, h - 20)
+        panel:setBounds(0, 0, w, h - 20) -- TODO what is this -20 used for?
 
         -- resize for Walkman
         -- can be adjusted for KIO-WA
@@ -200,6 +209,19 @@ local function loadKIOWAUI()
         WalkmanFolderButton:setBounds(w * (4 / numberOfButtons) + buttonSpacing,
             row1, w / numberOfButtons - buttonSpacing, buttonHeight)
 --]]
+
+        -- determine the bounds of the minimum and maximum window width and height
+        -- the minimum pair can be equal to the On/Off button
+        -- the maximum pair can be equal to the most columns and rows
+        local minHeight = 59
+        local minWidth = 94
+        local maxHeight = 132
+        local maxWidth = 411
+        if h < minHeight then h = minHeight end
+        if w < minWidth then w = minWidth end
+        if h > maxHeight then h = maxHeight end
+        if w > maxWidth then w = maxWidth end
+
         config.windowSize = { w = w, h = h }
         saveConfiguration()
     end
@@ -296,7 +318,7 @@ local function loadKIOWAUI()
         handleMove(window)
 
         window:addHotKeyCallback(
-            config.hotkey,
+            config.hideToggleHotkey,
             function()
                 if isHidden == true then
                     show()
@@ -351,19 +373,24 @@ local function loadKIOWAUI()
             local theta = math.atan2(cPos.x.z, cPos.x.x)
             local hdgDegTrue = math.deg(theta)
 
-            local result = hdgDegTrue + magvar -- the resultm in magnetic
+            -- the head2face offset will be added here because this is right before
+            -- correcting for numbers less than or more than 360 degrees
+            local result = hdgDegTrue + magvar + config.Head2FaceOffset -- the result in magnetic
             -- because we could be subtracting magvar, we dont want
             -- something line -7 degree when looking north. Add 360
             -- degrees for negative numbers to make them positive, yet
             -- still compass numbers.
             if result < 0 then result = result + 360 end
+            -- making sure the result is within 0 and 360 in all situations
+            if result > 360 then result = result - 360 end
 
-            -- make all results 3 digits. This is likey unnecessary, TODO check
-            result = string.format("%03.0f", round10(result))
+
+            -- round the number to end in 0
+            result = round10(result)
             -- this seems backwards, because if we command the resulting
             -- 36, that would be 35 + 1, which is out of the range of the
             -- commands as "Set heading MMS". TODO check this out
-            if result == "000" then result = "360" end
+            if result == "360" then result = "0" end
 
             result = tonumber(result) / 10
             local commandButton = 3000 + 66 + (result)
@@ -394,11 +421,10 @@ local function loadKIOWAUI()
             local result = hdgDegTrue + magvar
             if result < 0 then result = result + 360 end
 
-            -- TODO, see if this is necessary
-            result = string.format("%03.0f", round10(result))
+            result = round10(result)
             -- TODO, see if this makes sense for command
             -- button computation
-            if result == "000" then result = "360" end
+            if result == "360" then result = "0" end
 
             result = tonumber(result) / 10
             local commandButton = 3000 + 66 + (result)
@@ -438,7 +464,7 @@ local function loadKIOWAUI()
             local hdgRelative = hdgDeg + displayedDirection
             if hdgRelative > 360 then hdgRelative = hdgRelative - 360 end -- account for numbers past 360 degrees
             -- TODO make sure this is ok for commandbutton for 350/0
-            if hdgRelative == 0 then hdgRelative = 360 end
+            if hdgRelative == 360 then hdgRelative = 0 end
             -- divide by 10 to allow equation
             local commandButton = 3000 + 66 + (hdgRelative / 10)
             Export.GetDevice(18):performClickableAction(commandButton, 1)
@@ -456,13 +482,13 @@ local function loadKIOWAUI()
         -- is the same as the text that is shown.
         BaroButton:addMouseDownCallback(
             function(self)
-                if isBaroMode == 0 then
+                if isBaroMode == false then
                     AIpress(6) -- baro
-                    isBaroMode = 1
+                    isBaroMode = true
                     BaroButton:setText("BARO")
                 else
                     AIpress(13) -- radalt
-                    isBaroMode = 0
+                    isBaroMode = false
                     BaroButton:setText("RADALT")
                 end
             end
@@ -476,6 +502,7 @@ local function loadKIOWAUI()
             function(self)
                 -- resizes the gui
                 -- 0 compact;1 full;3 expanded
+                -- TODO change this variable to "resize"
                 if windowSize == 0 then -- if compact, change to full
                     -- TODO look into different arrow designs for this
                     -- and orbit
@@ -516,16 +543,16 @@ local function loadKIOWAUI()
         LeftRightToggleButton:addMouseDownCallback(
             function(self)
                 LeftRightToggleButton:setText("LEFT/RIGHT") -- ▶◀
-                if isRightMode == 0 then
+                if isRightMode == false then
                     OrbitButton:setText("◀ Orbit ")
                     TurnButton:setText("◀ Turn ")
                     DriftHoverButton:setText("◀ Hover ")
-                    isRightMode = 1
+                    isRightMode = true
                 else
                     OrbitButton:setText(" Orbit ▶")
                     TurnButton:setText(" Turn ▶")
                     DriftHoverButton:setText(" Hover ▶")
-                    isRightMode = 0
+                    isRightMode = false
                 end
             end
         )
@@ -562,7 +589,7 @@ local function loadKIOWAUI()
         TurnButton:addMouseWheelCallback(
             function(self, x, y, clicks)
                 --[[
-                if isRightMode == 0 then
+                if isRightMode == false then
                     -- TODO heading left 103, -0.1
                     Export.GetDevice(18):performClickableAction(103, -1)
                 else
@@ -578,7 +605,7 @@ local function loadKIOWAUI()
         DriftHoverButton:addMouseWheelCallback(
             function(self, x, y, clicks)
                 if clicks == 1 then
-                    if isRightMode == 0 then
+                    if isRightMode == false then
                         -- TODO
                         -- left
                         Export.GetDevice(18):performClickableAction(107, 1)
@@ -641,15 +668,19 @@ local function loadKIOWAUI()
         )
 
         RouteButton:addMouseDownCallback(
-            function(self)
-                if isRouteMode == 0 then
-                    isRouteMode = 1
-                    AIpress(14) -- route pt
-                    RouteButton:setText("FLY2POINT")
-                else
-                    isRouteMode = 0
-                    AIpress(15) -- flight plan
-                    RouteButton:setText("FLT PLAN")
+            function(self, x, y, button)
+                if button == 2 then -- middle mouse click
+                    stopOrbit()
+                else                -- any other mouse butto
+                    if isRouteMode == false then
+                        isRouteMode = true
+                        AIpress(14) -- route pt
+                        RouteButton:setText("FLY2POINT")
+                    else
+                        isRouteMode = false
+                        AIpress(15) -- flight plan
+                        RouteButton:setText("FLT PLAN")
+                    end
                 end
             end
         )
@@ -1011,21 +1042,23 @@ local function loadKIOWAUI()
         aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
         logFile:write("|onSimulationStop = " .. aircraft .. "|")
         inMission = false
-        hide()
+        hide() -- hides the app when returning to the main game menus
     end
 
+    --[[
     function handler.onSimulationResume() --onSimulationPause is the opposite
         detectPlayerAircraft()
     end
-
+--]]
     function handler.onPlayerChangeSlot() -- MP only
         detectPlayerAircraft()
     end
 
+    --[[
     function handler.onShowBriefing()
         detectPlayerAircraft()
     end
-
+--]]
     DCS.setUserCallbacks(handler)
 
     net.log("[KIO-WA] Loaded ...")
