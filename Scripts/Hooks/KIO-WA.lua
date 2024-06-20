@@ -169,7 +169,7 @@ local function loadKIOWAUI()
                 windowSize       = { w = 253, h = 132 }, -- the window till I got something that looked ok
                 hideOnLaunch     = false,
                 Head2FaceHotkey  = "Ctrl+Shift+F10",     -- enables the function via hotkey
-                Head2FaceOffset  = 30,                   -- this determines if the head2face features is offset by the user
+                Head2FaceOffset  = 0,                   -- this determines if the head2face features is offset by the user
                 -- positve values are to the right, negatve values to the left. In degrees.
             }
             saveConfiguration()
