@@ -302,8 +302,8 @@ local function loadKIOWAUI()
 
         -- c4
         Hdg2FaceButton        = panel.c4r1Button
-        MmsButton             = panel.c4r2Button
-        BaroButton            = panel.c4r3Button
+        Hdg2MmsButton         = panel.c4r2Button
+        AltitudeMode          = panel.c4r3Button
         RouteButton           = panel.c4r4Button
 
         -- c5
@@ -367,9 +367,9 @@ local function loadKIOWAUI()
         end
 
         local function checkCfitcolor()
-            AltitudeButton:setSkin(HudButtonSkin)  -- turn the skin grey before the calculation. assumes no CFIT
-            if BaroButton:getText() == "BARO" then -- if baro mode is indicated
-                if config.avoidCFIT == true then   -- if the setting is enabled
+            AltitudeButton:setSkin(HudButtonSkin)    -- turn the skin grey before the calculation. assumes no CFIT
+            if AltitudeMode:getText() == "BARO" then -- if baro mode is indicated
+                if config.avoidCFIT == true then     -- if the setting is enabled
                     -- strip the ' ft' from the altitude text so that it is just a number
                     local commandAlt = AltitudeButton:getText()
                     commandAlt = commandAlt:gsub(' ft', '')
@@ -506,16 +506,19 @@ local function loadKIOWAUI()
         -- When the baro/radalt button is clicked the
         -- button will change. The status of the AI command
         -- is the same as the text that is shown.
-        BaroButton:addMouseDownCallback(
+        AltitudeMode:addMouseDownCallback(
             function(self)
+                -- assume there is no CFIT
+                AltitudeButton:setSkin(HudButtonSkin)
                 if isBaroMode == false then
                     AIpress(6) -- baro
                     isBaroMode = true
-                    BaroButton:setText("BARO")
+                    AltitudeMode:setText("BARO")
+                    checkCfitcolor() -- check for CFIT
                 else
-                    AIpress(13) -- radalt
+                    AIpress(13)      -- radalt
                     isBaroMode = false
-                    BaroButton:setText("RADALT")
+                    AltitudeMode:setText("RADALT")
                 end
             end
         )
@@ -663,7 +666,7 @@ local function loadKIOWAUI()
             end
         )
         -- MMS to heading
-        MmsButton:addMouseDownCallback(
+        Hdg2MmsButton:addMouseDownCallback(
             function(self)
                 AIpress(102)
             end
@@ -774,9 +777,9 @@ local function loadKIOWAUI()
                         -- go that low.
                         -- TODO find a way to give a notification
                         AltitudeButton:setSkin(HudButtonSkin)
-                        if BaroButton:getText() == "BARO" then -- if baro mode is indicated
-                            if config.avoidCFIT == true then   -- if the setting is enabled
-                                if cfitOverride == false then  -- if the player did not override the command
+                        if AltitudeMode:getText() == "BARO" then -- if baro mode is indicated
+                            if config.avoidCFIT == true then     -- if the setting is enabled
+                                if cfitOverride == false then    -- if the player did not override the command
                                     -- strip the ' ft' from the altitude text so that it is just a number
                                     local commandAlt = alt[i]:gsub(' ft', '')
                                     -- if the commanded altitude is lower than ground level, dont do it.
@@ -1020,12 +1023,12 @@ local function loadKIOWAUI()
     local function setAllText()
         RouteButton:setText("RTE/POINT")
         TurnRateButton:setText("TURN RATE")
-        BaroButton:setText("BARO/RAD")
+        AltitudeMode:setText("BARO/RAD")
         SizeButton:setText("RESIZE")
         TakeoffButton:setText("TAKEOFF")
         HoverButton:setText("HOVER")
         LandButton:setText("LAND")
-        MmsButton:setText("HDG2MMS")
+        Hdg2MmsButton:setText("HDG2MMS")
 
         HudButton:setText("HUD")
         OnoffButton:setText("AI PILOT")
