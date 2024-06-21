@@ -55,6 +55,8 @@
     - Barundus will ignore CFIT (Controlled Flight Into Terrain) Baro altitude commands
     - CFIT commands can be enabled via the config file
     - CFIT commands can be given with using the middle mouse button on the altitude button
+    - Altitude selection button will turn red if Barundus thinks it is a CFIT command
+    - Buttons moved around
 -]]
 
 --[[Pretty pictures:
@@ -105,7 +107,6 @@ local function loadKIOWAUI()
     local window = nil
     local windowDefaultSkin = nil
     local windowSkinHidden = Skin.windowSkinChatMin()
-    local redButtonSkin = Skin.buttonSkinRedNew()
     local panel = nil
     local logFile = io.open(lfs.writedir() .. [[Logs\KIO-WA.log]], "w")
     local config = nil
@@ -316,11 +317,9 @@ local function loadKIOWAUI()
         RedButton             = panel.RedButton
 
         -- Skins
-        GreenSkin             = OnoffButton:getSkin()
-        GreySkin              = HudButton:getSkin()
-        RedSkin               = RedButton:getSkin()
-        AltitudeButton:setSkin(redButtonSkin)
-
+        OnOffSkin             = OnoffButton:getSkin() -- this works
+        RedButtonSkin         = RedButton:getSkin()   -- this works
+        HudButtonSkin         = HudButton:getSkin()
 
 
         -- setup window
@@ -367,31 +366,21 @@ local function loadKIOWAUI()
             Export.GetDevice(18):performClickableAction(commandButton, 1)
         end
 
-        -- TODO change the color of the button to red if CFIT is detected
-        -- buttonSkinRedNew
-        -- this should be onButtonChange
-        local function checkCFIT()
-            --AltitudeButton:setSkin(GreySkin)
-            if BaroButton:getText("BARO") then    -- if baro mode is indicated
-                if config.avoidCFIT == true then  -- if the setting is enabled
-                    --BaroButton:setSkin(GreenSkin)
-                    if cfitOverride == false then -- if the player did not override the command
-                        -- strip the ' ft' from the altitude text so that it is just a number
-                        local commandAlt = alt[i]:gsub(' ft', '')
-                        -- if the commanded altitude is lower than ground level, dont do it.
-                        -- this section is in meters, hense the conversion
-                        if tonumber(commandAlt) / 3.281 < (Export.LoGetAltitudeAboveSeaLevel() - Export.LoGetAltitudeAboveGroundLevel()) then
-                            -- does not allow the button to be pressed due to CFIT detection
-                            AltitudeButton:setSkin(redButtonSkin)
-                            return
-                        end
+        local function checkCfitcolor()
+            AltitudeButton:setSkin(HudButtonSkin)  -- turn the skin grey before the calculation. assumes no CFIT
+            if BaroButton:getText() == "BARO" then -- if baro mode is indicated
+                if config.avoidCFIT == true then   -- if the setting is enabled
+                    -- strip the ' ft' from the altitude text so that it is just a number
+                    local commandAlt = AltitudeButton:getText()
+                    commandAlt = commandAlt:gsub(' ft', '')
+                    -- this section is in meters, hense the conversion
+                    if tonumber(commandAlt) / 3.281 < (Export.LoGetAltitudeAboveSeaLevel() - Export.LoGetAltitudeAboveGroundLevel()) then
+                        -- if CFIT is detected, turn the button red
+                        AltitudeButton:setSkin(RedButtonSkin)
                     end
                 end
-            else
-                --AltitudeButton:setSkin(GreySkin)
             end
         end
-
 
         -- This function gets the direction that the camera is facing, and then
         -- is able to tell the AI to fly that direction
@@ -784,6 +773,7 @@ local function loadKIOWAUI()
                         -- if in Baro mode, try to protect the pilot by checking if you can acutally
                         -- go that low.
                         -- TODO find a way to give a notification
+                        AltitudeButton:setSkin(HudButtonSkin)
                         if BaroButton:getText() == "BARO" then -- if baro mode is indicated
                             if config.avoidCFIT == true then   -- if the setting is enabled
                                 if cfitOverride == false then  -- if the player did not override the command
@@ -793,6 +783,7 @@ local function loadKIOWAUI()
                                     -- this section is in meters, hense the conversion
                                     if tonumber(commandAlt) / 3.281 < (Export.LoGetAltitudeAboveSeaLevel() - Export.LoGetAltitudeAboveGroundLevel()) then
                                         --OnoffButton:setText("BAROBLOC") -- debug
+                                        AltitudeButton:setSkin(RedButtonSkin)
                                         return
                                     end
                                 end
@@ -823,15 +814,14 @@ local function loadKIOWAUI()
                             -- set the text of the button as the next item in the array, because
                             -- the player wanted to get the next one
                             AltitudeButton:setText(alt[i + 1])
-                            checkCFIT() -- TODO
                         end
                     end
                     -- roll back to the start when getting to the end of the array.
                     -- if the altitude on the button equals the last entry of the array
                     if shownAltitude == alt[#alt] then
                         AltitudeButton:setText(alt[1])
-                        checkCFIT() -- TODO
                     end
+                    checkCfitcolor()
                 end
 
                 -- the same as the above, but for scroll down
@@ -849,6 +839,7 @@ local function loadKIOWAUI()
                     if shownAltitude == alt[1] then
                         AltitudeButton:setText(alt[#alt])
                     end
+                    checkCfitcolor() -- TODO
                 end
             end
         )
