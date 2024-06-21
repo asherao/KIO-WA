@@ -115,6 +115,29 @@ dialog = {
                 ------------------------------------------------
                 -- Kiowa Integrated Overlay - Warrior Automatis --
                 ------------------------------------------------
+                ["RedButton"] = {
+                    ["params"] = {
+                        ["bounds"] = {
+                            ["h"] = buttonHeight,
+                            ["w"] = buttonWidth,
+                            ["x"] = column1,
+                            ["y"] = row1
+                        },
+                        ["enabled"] = true,
+                        ["tabOrder"] = 0,
+                        ["text"] = "RED",
+                        ["tooltip"] = "",
+                        ["visible"] = false,
+                        ["zindex"] = 1
+                    },
+                    ["skin"] = {
+                        ["params"] = {
+                            ["name"] = "buttonSkinRedNew"
+                        }
+                    },
+                    ["type"] = "Button"
+                },
+
                 ["c1r2Button"] = {
                     ["params"] = {
                         ["bounds"] = {
