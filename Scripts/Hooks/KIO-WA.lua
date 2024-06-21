@@ -23,9 +23,6 @@
     - Change the opacity for features that are not yet in
     function setSkin(self, skin)
 	    gui.WidgetSetSkin(self.widget, skin)
-    end 
-    function setOpacity(self, opacity)
-	    gui.WidgetSetOpacity(self.widget, opacity)
     end
 --]]
 
@@ -108,6 +105,7 @@ local function loadKIOWAUI()
     local window = nil
     local windowDefaultSkin = nil
     local windowSkinHidden = Skin.windowSkinChatMin()
+    local redButtonSkin = Skin.buttonSkinRedNew()
     local panel = nil
     local logFile = io.open(lfs.writedir() .. [[Logs\KIO-WA.log]], "w")
     local config = nil
@@ -181,7 +179,7 @@ local function loadKIOWAUI()
                 hideOnLaunch     = false,
                 Head2FaceHotkey  = "Ctrl+Shift+F10",     -- enables the function via hotkey
                 Head2FaceOffset  = 0,                    -- this determines if the head2face features is offset by the user
-                avoidCFIT        = true,                    -- with this enabled, Barundus will ignore commands to below 0 AGL
+                avoidCFIT        = true,                 -- with this enabled, Barundus will ignore commands to below 0 AGL
                 -- positve values are to the right, negatve values to the left. In degrees.
             }
             saveConfiguration()
@@ -288,7 +286,7 @@ local function loadKIOWAUI()
         HudButton             = panel.c1r2Button
         HideButton            = panel.c1r3Button
         SizeButton            = panel.c1r4Button
-        
+
         -- c2
         OrbitButton           = panel.c2r1Button
         TakeoffButton         = panel.c2r2Button
@@ -315,6 +313,15 @@ local function loadKIOWAUI()
 
         -- random
         ParameterDial         = panel.ParameterDial
+        RedButton             = panel.RedButton
+
+        -- Skins
+        GreenSkin             = OnoffButton:getSkin()
+        GreySkin              = HudButton:getSkin()
+        RedSkin               = RedButton:getSkin()
+        AltitudeButton:setSkin(redButtonSkin)
+
+
 
         -- setup window
         window:setBounds(
@@ -359,35 +366,32 @@ local function loadKIOWAUI()
             local commandButton = 3000 + 66 + (displayedDirection / 10) -- divided by 10 for command calculation
             Export.GetDevice(18):performClickableAction(commandButton, 1)
         end
---[[
-        -- TODO change the collor of the button to red if CFIT is detected
+
+        -- TODO change the color of the button to red if CFIT is detected
         -- buttonSkinRedNew
         -- this should be onButtonChange
         local function checkCFIT()
-            if BaroButton:getText("BARO") then -- if baro mode is indicated   
-                if config.avoidCFIT == true then -- if the setting is enabled
-                    local Skin              		= require('Skin')
-                    BaroButton:setSkin(Skin.buttonSkinGreenNew)
-                    
+            --AltitudeButton:setSkin(GreySkin)
+            if BaroButton:getText("BARO") then    -- if baro mode is indicated
+                if config.avoidCFIT == true then  -- if the setting is enabled
+                    --BaroButton:setSkin(GreenSkin)
                     if cfitOverride == false then -- if the player did not override the command
-               -- strip the ' ft' from the altitude text so that it is just a number
-                    local commandAlt = alt[i]:gsub(' ft', '')
-                    -- if the commanded altitude is lower than ground level, dont do it.
-                    -- this section is in meters, hense the conversion
-                        if tonumber(commandAlt)/3.281 < (Export.LoGetAltitudeAboveSeaLevel() - Export.LoGetAltitudeAboveGroundLevel()) then
-                        --OnoffButton:setText("BAROBLOC") -- debug
+                        -- strip the ' ft' from the altitude text so that it is just a number
+                        local commandAlt = alt[i]:gsub(' ft', '')
+                        -- if the commanded altitude is lower than ground level, dont do it.
+                        -- this section is in meters, hense the conversion
+                        if tonumber(commandAlt) / 3.281 < (Export.LoGetAltitudeAboveSeaLevel() - Export.LoGetAltitudeAboveGroundLevel()) then
+                            -- does not allow the button to be pressed due to CFIT detection
+                            AltitudeButton:setSkin(redButtonSkin)
                             return
                         end
                     end
-                    
                 end
             else
-                local Skin              		= require('Skin')
-                BaroButton:setSkin(Skin.buttonSkinGraybNew)
+                --AltitudeButton:setSkin(GreySkin)
             end
-
         end
---]]
+
 
         -- This function gets the direction that the camera is facing, and then
         -- is able to tell the AI to fly that direction
@@ -621,15 +625,15 @@ local function loadKIOWAUI()
         -- crashing DCS with a while loop
         TurnButton:addMouseWheelCallback(
             function(self, x, y, clicks)
-                --[[
-                if isRightMode == false then
-                    -- TODO heading left 103, -0.1
-                    Export.GetDevice(18):performClickableAction(103, -1)
-                else
-                    -- TODO
-                    Export.GetDevice(18):performClickableAction(103, 1)
+                if clicks then
+                    if isRightMode == false then
+                        -- TODO heading left 103, -0.1
+                        Export.GetDevice(18):performClickableAction(103, -0.1)
+                    else
+                        -- TODO
+                        Export.GetDevice(18):performClickableAction(103, 0.1)
+                    end
                 end
-                --]]
             end
         )
         -- WIP
@@ -777,24 +781,24 @@ local function loadKIOWAUI()
                         -- make i the number in the array
                         local commandButton = 3000 + 30 + i
                         -- if in RadAlt mode, press the button
-                        -- if in Baro mode, try to protect the pilot by checking if you can acutally 
-                        -- go that low. 
+                        -- if in Baro mode, try to protect the pilot by checking if you can acutally
+                        -- go that low.
                         -- TODO find a way to give a notification
-                        if BaroButton:getText() == "BARO" then -- if baro mode is indicated  
-                            if config.avoidCFIT == true then -- if the setting is enabled
-                                if cfitOverride == false then -- if the player did not override the command
-                       -- strip the ' ft' from the altitude text so that it is just a number
-                                local commandAlt = alt[i]:gsub(' ft', '')
-                            -- if the commanded altitude is lower than ground level, dont do it.
-                            -- this section is in meters, hense the conversion
-                                    if tonumber(commandAlt)/3.281 < (Export.LoGetAltitudeAboveSeaLevel() - Export.LoGetAltitudeAboveGroundLevel()) then
+                        if BaroButton:getText() == "BARO" then -- if baro mode is indicated
+                            if config.avoidCFIT == true then   -- if the setting is enabled
+                                if cfitOverride == false then  -- if the player did not override the command
+                                    -- strip the ' ft' from the altitude text so that it is just a number
+                                    local commandAlt = alt[i]:gsub(' ft', '')
+                                    -- if the commanded altitude is lower than ground level, dont do it.
+                                    -- this section is in meters, hense the conversion
+                                    if tonumber(commandAlt) / 3.281 < (Export.LoGetAltitudeAboveSeaLevel() - Export.LoGetAltitudeAboveGroundLevel()) then
                                         --OnoffButton:setText("BAROBLOC") -- debug
                                         return
                                     end
                                 end
                             end
                         end
-                     -- press the button
+                        -- press the button
                         Export.GetDevice(18):performClickableAction(commandButton, 1)
                     end
                 end
@@ -819,14 +823,14 @@ local function loadKIOWAUI()
                             -- set the text of the button as the next item in the array, because
                             -- the player wanted to get the next one
                             AltitudeButton:setText(alt[i + 1])
-                            --checkCFIT() -- TODO
+                            checkCFIT() -- TODO
                         end
                     end
                     -- roll back to the start when getting to the end of the array.
                     -- if the altitude on the button equals the last entry of the array
                     if shownAltitude == alt[#alt] then
                         AltitudeButton:setText(alt[1])
-                        --checkCFIT() -- TODO
+                        checkCFIT() -- TODO
                     end
                 end
 
@@ -1040,9 +1044,12 @@ local function loadKIOWAUI()
         NorthTrackButton:setText("360° T")
 
         LeftRightToggleButton:setText("LEFT/RIGHT") -- TODO remove this feature
+        LeftRightToggleButton:setOpacity(0.25)
         OrbitButton:setText("◀ORBIT▶") -- TODO find new arrows. Maybe make them customizable
         TurnButton:setText("TURN")
+        TurnButton:setOpacity(0.25)
         DriftHoverButton:setText("DRIFT")
+        DriftHoverButton:setOpacity(0.25)
         HideButton:setText("HIDE")
         Hdg2FaceButton:setText("HDG2FACE")
     end
