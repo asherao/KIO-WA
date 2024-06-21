@@ -115,28 +115,196 @@ dialog = {
                 ------------------------------------------------
                 -- Kiowa Integrated Overlay - Warrior Automatis --
                 ------------------------------------------------
-                ["RedButton"] = {
-                    ["params"] = {
-                        ["bounds"] = {
-                            ["h"] = buttonHeight,
-                            ["w"] = buttonWidth,
-                            ["x"] = column1,
-                            ["y"] = row1
-                        },
-                        ["enabled"] = true,
-                        ["tabOrder"] = 0,
-                        ["text"] = "RED",
-                        ["tooltip"] = "",
-                        ["visible"] = false,
-                        ["zindex"] = 1
-                    },
-                    ["skin"] = {
-                        ["params"] = {
-                            ["name"] = "buttonSkinRedNew"
-                        }
-                    },
-                    ["type"] = "Button"
-                },
+                ["RedButton"] = { -- just provides the skin for the red button
+                 	["params"] = {
+								["bounds"] = {
+									["h"] = 30,
+									["w"] = 150,
+									["x"] = 50,
+									["y"] = 10,
+								},
+								["enabled"] = true,
+								["tabOrder"] = 0,
+								["text"] = "RED",
+								["tooltip"] = "",
+								["visible"] = false,
+								["zindex"] = 2,
+							},
+							["skin"] = {
+								["params"] = {
+									["name"] = "buttonSkinRedNew",
+									["textWrapping"] = false,
+									["useEllipsis"] = false,
+								},
+								["states"] = {
+									["disabled"] = {
+										[1] = {
+											["bkg"] = {
+												["center_bottom"] = "0xffffffff",
+												["center_center"] = "0xffffffff",
+												["center_top"] = "0xffffffff",
+												["file"] = "dxgui\\skins\\skinme\\images\\buttons\\buttons(new)\\released\\btnrednew.png",
+												["insets"] = {
+													["bottom"] = 4,
+													["left"] = 4,
+													["right"] = 4,
+													["top"] = 4,
+												},
+												["left_bottom"] = "0xffffffff",
+												["left_center"] = "0xffffffff",
+												["left_top"] = "0xffffffff",
+												["rect"] = {
+													["x1"] = 10,
+													["x2"] = 130,
+													["y1"] = 10,
+													["y2"] = 40,
+												},
+												["right_bottom"] = "0xffffffff",
+												["right_center"] = "0xffffffff",
+												["right_top"] = "0xffffffff",
+											},
+											["picture"] = {
+												["color"] = "$nil$",
+												["file"] = "$nil$",
+												["horzAlign"] = {
+													["offset"] = 0,
+												},
+												["vertAlign"] = {
+													["offset"] = 0,
+												},
+											},
+											["text"] = {
+												["fontSize"] = 11,
+											},
+										},
+									},
+									["hover"] = {
+										[1] = {
+											["bkg"] = {
+												["center_bottom"] = "0xffffffff",
+												["center_center"] = "0xffffffff",
+												["center_top"] = "0xffffffff",
+												["file"] = "dxgui\\skins\\skinme\\images\\buttons\\buttons(new)\\hover\\btnrednew.png",
+												["insets"] = {
+													["bottom"] = 4,
+													["left"] = 4,
+													["right"] = 4,
+													["top"] = 4,
+												},
+												["left_bottom"] = "0xffffffff",
+												["left_center"] = "0xffffffff",
+												["left_top"] = "0xffffffff",
+												["rect"] = {
+													["x1"] = 10,
+													["x2"] = 130,
+													["y1"] = 10,
+													["y2"] = 40,
+												},
+												["right_bottom"] = "0xffffffff",
+												["right_center"] = "0xffffffff",
+												["right_top"] = "0xffffffff",
+											},
+											["picture"] = {
+												["color"] = "$nil$",
+												["file"] = "$nil$",
+												["horzAlign"] = {
+													["offset"] = 0,
+												},
+												["vertAlign"] = {
+													["offset"] = 0,
+												},
+											},
+											["text"] = {
+												["fontSize"] = 11,
+											},
+										},
+									},
+									["pressed"] = {
+										[1] = {
+											["bkg"] = {
+												["center_bottom"] = "0xffffffff",
+												["center_center"] = "0xffffffff",
+												["center_top"] = "0xffffffff",
+												["file"] = "dxgui\\skins\\skinme\\images\\buttons\\buttons(new)\\pressed\\btnrednew.png",
+												["insets"] = {
+													["bottom"] = 4,
+													["left"] = 4,
+													["right"] = 4,
+													["top"] = 4,
+												},
+												["left_bottom"] = "0xffffffff",
+												["left_center"] = "0xffffffff",
+												["left_top"] = "0xffffffff",
+												["rect"] = {
+													["x1"] = 10,
+													["x2"] = 130,
+													["y1"] = 10,
+													["y2"] = 40,
+												},
+												["right_bottom"] = "0xffffffff",
+												["right_center"] = "0xffffffff",
+												["right_top"] = "0xffffffff",
+											},
+											["picture"] = {
+												["color"] = "$nil$",
+												["file"] = "$nil$",
+												["horzAlign"] = {
+													["offset"] = 0,
+												},
+												["vertAlign"] = {
+													["offset"] = 0,
+												},
+											},
+											["text"] = {
+												["fontSize"] = 11,
+											},
+										},
+									},
+									["released"] = {
+										[1] = {
+											["bkg"] = {
+												["center_bottom"] = "0xffffffff",
+												["center_center"] = "0xffffffff",
+												["center_top"] = "0xffffffff",
+												["file"] = "dxgui\\skins\\skinme\\images\\buttons\\buttons(new)\\released\\btnrednew.png",
+												["insets"] = {
+													["bottom"] = 4,
+													["left"] = 4,
+													["right"] = 4,
+													["top"] = 4,
+												},
+												["left_bottom"] = "0xffffffff",
+												["left_center"] = "0xffffffff",
+												["left_top"] = "0xffffffff",
+												["rect"] = {
+													["x1"] = 10,
+													["x2"] = 130,
+													["y1"] = 10,
+													["y2"] = 40,
+												},
+												["right_bottom"] = "0xffffffff",
+												["right_center"] = "0xffffffff",
+												["right_top"] = "0xffffffff",
+											},
+											["picture"] = {
+												["color"] = "$nil$",
+												["file"] = "$nil$",
+												["horzAlign"] = {
+													["offset"] = 0,
+												},
+												["vertAlign"] = {
+													["offset"] = 0,
+												},
+											},
+											["text"] = {
+												["fontSize"] = 11,
+											},
+										},
+									},
+								},
+							},
+							["type"] = "Button",
+						},
 
                 ["c1r2Button"] = {
                     ["params"] = {
