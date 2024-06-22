@@ -56,7 +56,9 @@
     - CFIT commands can be enabled via the config file
     - CFIT commands can be given with using the middle mouse button on the altitude button
     - Altitude selection button will turn red if Barundus thinks it is a CFIT command
+    - Barundus will tell you that he does not agree with CFIT
     - Buttons moved around
+
 -]]
 
 --[[Pretty pictures:
@@ -110,6 +112,18 @@ local function loadKIOWAUI()
     local panel = nil
     local logFile = io.open(lfs.writedir() .. [[Logs\KIO-WA.log]], "w")
     local config = nil
+    local dirPath = lfs.writedir() .. [[\Scripts\KIO-WA\]]
+    local file = "doWhat1.wav"
+    --local fullPath = dirPath .. '\\' .. file
+    local fullPath = dirPath .. file
+    local playList = {}
+    --[[
+    local function setEffectsVolume(volume)
+		local gain = volume / 100.0
+		enableEffects = 0 < gain
+		sound.setEffectsGain(gain)
+	end
+    ]]
 
     -- State
     local isHidden = true
@@ -195,6 +209,27 @@ local function loadKIOWAUI()
         window:setVisible(b)
     end
 
+    local function removeFileExtention(v)
+        h = {}
+        h[1] = v:match("(.+)%..+$")
+        return h[1]
+    end
+
+    local function GetFileExtension(v)
+        return v:match("^.+(%..+)$")
+    end
+
+    local function getSounds(dirPath) -- reloads every time a song is requested
+        for file in lfs.dir(dirPath) do
+            local fullPath = dirPath .. file
+            if 'file' == lfs.attributes(fullPath).mode then
+                if GetFileExtension(file) == '.ogg' or GetFileExtension(file) == '.wav' then
+                    table.insert(playList, fullPath)
+                end
+            end
+        end
+    end
+
     -- button resize is dsiabled due to early development complexity
     local function handleResize(self)
         local w, h = self:getSize()
@@ -225,9 +260,9 @@ local function loadKIOWAUI()
         -- the minimum pair can be equal to the On/Off button
         -- the maximum pair can be equal to the most columns and rows
         local minHeight = 59
-        local minWidth = 94
+        local minWidth  = 94
         local maxHeight = 132
-        local maxWidth = 411
+        local maxWidth  = 411
         if h < minHeight then h = minHeight end
         if w < minWidth then w = minWidth end
         if h > maxHeight then h = maxHeight end
@@ -745,6 +780,7 @@ local function loadKIOWAUI()
 
         OnoffButton:addMouseDownCallback( -- original
             function(self)
+                --sound.playPreview(fullPath) -- testing
                 AIpress(7)
             end
         )
@@ -786,7 +822,12 @@ local function loadKIOWAUI()
                                     -- this section is in meters, hense the conversion
                                     if tonumber(commandAlt) / 3.281 < (Export.LoGetAltitudeAboveSeaLevel() - Export.LoGetAltitudeAboveGroundLevel()) then
                                         --OnoffButton:setText("BAROBLOC") -- debug
+                                        -- turn the button red
                                         AltitudeButton:setSkin(RedButtonSkin)
+                                        -- put the sounds in a list
+                                        getSounds(dirPath)
+                                        -- play a random sound from that list
+                                        sound.playPreview(playList[math.random(#playList)])
                                         return
                                     end
                                 end
