@@ -7,13 +7,9 @@
 --]]
 
 --[[ Future Feature Goals:
+    - Re-add stopturn feature that was lost in the relativeHeading feature
     - Change the default hotkeys(?)
     - Make a minimum window size during resize
-    - Add more commands such as
-    -- Increase/Decrease speed
-    -- Hover Drift Left/Right
-    -- Increase/Decrease altitude
-    -- Adjust heading left/right
     - research the possibility of using hardware buttons to toggle the GUI
     - Make everything "modular" (good luck) so that ppl can pick which "modules"
     they want to use. Would this feature go well in a Special Options menu? It is
@@ -21,35 +17,15 @@
     issue to solve.
     - Remove the margin gap at the top and sides of groups of buttons/controls
     - Make a error catch for there not being audio files
-    when using turn, you can set the new command as xDegrees
-    same with increase and decrease altitude
-    same with hover drift, 1 notch is +-1
-    same with speed.
-
-    For altitude and speed, have the button look like this | Alt (+-5) | Kts (+-5) | Turn (+-5) |
-    Kts increase by 1(?) and alt increase by 10 (?) and turn by 5(?). can be changed in the config
-    The user uses scroll wheeel to change the amount. Presses left click to increaes, roght click to decrease. Middle to reset ???
-
-    For drift just jave left clock as 1 and right click as -1, and middle click as reset (-20 then +5 in code)
+    - Consider making the extra sounds configurable via config file
 --]]
 
 --[[ Bugs:
     - Commanding 110 kts results in "ok, lets do a hover check" (which is 3061!!! hidden feature?!?!?)
-        6
-
+    - CFIT no can do sounds are not playing
 --]]
 
 --[[ Change Notes:
-    v0.4:
-    - HDG2FACE - Barundus will turn the aircraft to the direction you are looking
-    -- Default HDG2FACE hotkey is Shift+Ctrl+F10
-    - Left click orbit button orbits left
-    - Right click orbit button orbits right
-    - Mouse wheel click orbit cancels orbit and flies straight
-    - If an orbit is commanded from a hover, Barundus will orbit at 10 kts
-    - Made a different button green
-    - Added lots of notes and comments
-    - Left/Right, Turn, and Drift are still nonfunctional
 
     v0.5
     - Hide on Launch option is available via the config file
@@ -67,8 +43,13 @@
     - CFIT commands can be enabled via the config file
     - CFIT commands can be given with using the middle mouse button on the altitude button
     - Buttons moved around
-    - Enabled Drift. Scroll whell changes the amount. Left click adds that amount to the left, right click to the right. Middle click resets the drift to 0.
--]]
+    - Removed old relative heading feature
+    - Added new relative heading feature
+    - Enabled Drift button
+    - Enabled relative altitude button
+    - Enabled relative altitude button
+    - Added config options for relative button step sizes
+--]]
 
 --[[ Pretty pictures:
     Template:
@@ -121,18 +102,18 @@ local function loadKIOWAUI()
     local panel = nil
     local logFile = io.open(lfs.writedir() .. [[Logs\KIO-WA.log]], "w")
     local config = nil
-    local dirPath = lfs.writedir() .. [[\Scripts\KIO-WA\]]
-    local file = "doWhat1.wav"
+    local dirPath = lfs.writedir() .. [[Scripts\KIO-WA\]]
+    --local file = "doWhat1.wav"
     --local fullPath = dirPath .. '\\' .. file
-    local fullPath = dirPath .. file
-    local playList = {}
-    --[[
+    --local fullPath = dirPath .. file
+    local playList = {} -- will contain the list of Barundus "nope" audio for CFIT checks
+    --[[ Consider making the extra sounds configurable via config file
     local function setEffectsVolume(volume)
 		local gain = volume / 100.0
 		enableEffects = 0 < gain
 		sound.setEffectsGain(gain)
 	end
-    ]]
+    --]]
 
     -- State
     local isHidden = true
@@ -197,18 +178,17 @@ local function loadKIOWAUI()
         else
             log("Configuration not found, creating defaults...")
             config = {
-                hideToggleHotkey    = "Ctrl+Shift+F9",      -- show/hide
-                windowPosition      = { x = 50, y = 50 },   -- default values should be on screen for any resolution
-                windowSize          = { w = 253, h = 132 }, -- the window till I got something that looked ok
-                hideOnLaunch        = false,
-                Head2FaceHotkey     = "Ctrl+Shift+F10",     -- enables the function via hotkey
-                Head2FaceOffset     = 0,                    -- this determines if the head2face features is offset by the user
-                avoidCFIT           = true,                 -- with this enabled, Barundus will ignore commands to below 0 AGL
-                driftSensitivity    = 1,                    -- number of ticks per mouse wheel action
-                turnSensitivity     = 1,                    -- number of degrees per mouse wheel action
-                altitudeSensitivity = 100,                  -- number of feet per mouse wheel action
-                knotsSensitivity    = 5,                    -- number of knots per mouse wheel action
-                -- positve values are to the right, negatve values to the left. In degrees.
+                hideToggleHotkey = "Ctrl+Shift+F9",      -- show/hide
+                windowPosition   = { x = 50, y = 50 },   -- default values should be on screen for any resolution
+                windowSize       = { w = 411, h = 132 }, -- the window till I got something that looked ok
+                hideOnLaunch     = false,
+                Head2FaceHotkey  = "Ctrl+Shift+F10",     -- enables the function via hotkey
+                Head2FaceOffset  = 0,                    -- this determines if the head2face features is offset by the user
+                avoidCFIT        = true,                 -- with this enabled, Barundus will ignore commands to below 0 AGL
+                driftStep        = 0.5,                  -- number of ticks per mouse wheel action
+                turnStep         = 5,                    -- number of degrees per mouse wheel action
+                altitudeStep     = 50,                   -- number of feet per mouse wheel action
+                knotsStep        = 5,                    -- number of knots per mouse wheel action
             }
             saveConfiguration()
         end
@@ -220,12 +200,6 @@ local function loadKIOWAUI()
 
     local function setVisible(b)
         window:setVisible(b)
-    end
-
-    local function removeFileExtention(v)
-        h = {}
-        h[1] = v:match("(.+)%..+$")
-        return h[1]
     end
 
     local function GetFileExtension(v)
@@ -241,6 +215,7 @@ local function loadKIOWAUI()
                 end
             end
         end
+        log(dump(playList))
     end
 
     -- button resize is dsiabled due to early development complexity
@@ -321,53 +296,53 @@ local function loadKIOWAUI()
             return
         end
 
-        window            = DialogLoader.spawnDialogFromFile(
+        window              = DialogLoader.spawnDialogFromFile(
             lfs.writedir() .. "Scripts\\KIO-WA\\KIO-WA.dlg",
             cdata
         )
 
-        windowDefaultSkin = window:getSkin()
-        panel             = window.Box
+        windowDefaultSkin   = window:getSkin()
+        panel               = window.Box
         -- these are generically named so that a player/modder can
         -- change the positions of the buttons easily
         -- c1
-        OnoffButton       = panel.c1r1Button
-        HudButton         = panel.c1r2Button
-        HideButton        = panel.c1r3Button
-        SizeButton        = panel.c1r4Button
+        OnoffButton         = panel.c1r1Button
+        HudButton           = panel.c1r2Button
+        HideButton          = panel.c1r3Button
+        ResizeButton        = panel.c1r4Button
 
         -- c2
-        OrbitButton       = panel.c2r1Button
-        TakeoffButton     = panel.c2r2Button
-        HoverButton       = panel.c2r3Button
-        LandButton        = panel.c2r4Button
+        OrbitButton         = panel.c2r1Button
+        TakeoffButton       = panel.c2r2Button
+        HoverButton         = panel.c2r3Button
+        LandButton          = panel.c2r4Button
 
         -- c3
-        NorthTrackButton  = panel.c3r1Button
-        KnotsRelButton    = panel.c3r2Button -- used to be the RelativeCrsButton
-        AltitudeButton    = panel.c3r3Button
-        KnotsButton       = panel.c3r4Button
+        TurnRateButton      = panel.c3r1Button
+        NorthTrackButton    = panel.c3r2Button
+        AltitudeButton      = panel.c3r3Button
+        KnotsButton         = panel.c3r4Button
 
         -- c4
-        Hdg2FaceButton    = panel.c4r1Button
-        Hdg2MmsButton     = panel.c4r2Button
-        AltitudeMode      = panel.c4r3Button
-        RouteButton       = panel.c4r4Button
+        Hdg2FaceButton      = panel.c4r1Button
+        Hdg2MmsButton       = panel.c4r2Button
+        AltitudeMode        = panel.c4r3Button
+        RouteButton         = panel.c4r4Button
 
         -- c5
-        AltChangeButton   = panel.c5r1Button
-        TurnButton        = panel.c5r2Button
-        DriftHoverButton  = panel.c5r3Button
-        TurnRateButton    = panel.c5r4Button
+        DriftButton         = panel.c5r1Button
+        AdjustHeadingButton = panel.c5r2Button
+        AltRelButton        = panel.c5r3Button
+        KnotsRelButton      = panel.c5r4Button -- used to be the RelativeCrsButton
 
         -- random
-        ParameterDial     = panel.ParameterDial
-        RedButton         = panel.RedButton
+        ParameterDial       = panel.ParameterDial
+        RedButton           = panel.RedButton -- visually disabled. Here just to get the skin
 
         -- Skins
-        OnOffSkin         = OnoffButton:getSkin() -- this works
-        RedButtonSkin     = RedButton:getSkin()   -- this works
-        HudButtonSkin     = HudButton:getSkin()
+        GreenButtonSkin     = OnoffButton:getSkin()
+        RedButtonSkin       = RedButton:getSkin()
+        GrayButtonSkin      = HudButton:getSkin()
 
 
         -- setup window
@@ -415,7 +390,8 @@ local function loadKIOWAUI()
         end
 
         local function checkCfitcolor()
-            AltitudeButton:setSkin(HudButtonSkin)    -- turn the skin grey before the calculation. assumes no CFIT
+            -- check cfit color for altitude button
+            AltitudeButton:setSkin(GrayButtonSkin)   -- turn the skin grey before the calculation. assumes no CFIT
             if AltitudeMode:getText() == "BARO" then -- if baro mode is indicated
                 if config.avoidCFIT == true then     -- if the setting is enabled
                     -- strip the ' ft' from the altitude text so that it is just a number
@@ -425,7 +401,24 @@ local function loadKIOWAUI()
                     if tonumber(commandAlt) / 3.281 < (Export.LoGetAltitudeAboveSeaLevel() - Export.LoGetAltitudeAboveGroundLevel()) then
                         -- if CFIT is detected, turn the button red
                         AltitudeButton:setSkin(RedButtonSkin)
+                        return true -- true if CFIT detected
                     end
+                end
+            end
+
+
+            -- check cfit color for relative altitude button
+            AltRelButton:setSkin(GrayButtonSkin) -- turn the skin grey before the calculation. assumes no CFIT
+            if config.avoidCFIT == true then     -- if the setting is enabled
+                -- strip the ' ft' from the altitude text so that it is just a number
+                local altChange = AltRelButton:getText()
+                altChange = altChange:gsub('±', '')
+                altChange = altChange:gsub(' ALT', '')
+                -- this section is in meters, hense the conversion
+                if tonumber(altChange) / 3.281 < Export.LoGetAltitudeAboveGroundLevel() then
+                    -- if CFIT is detected, turn the button red
+                    AltRelButton:setSkin(RedButtonSkin)
+                    return true -- true if CFIT detected
                 end
             end
         end
@@ -557,7 +550,7 @@ local function loadKIOWAUI()
         AltitudeMode:addMouseDownCallback(
             function(self)
                 -- assume there is no CFIT
-                AltitudeButton:setSkin(HudButtonSkin)
+                AltitudeButton:setSkin(GrayButtonSkin)
                 if isBaroMode == false then
                     AIpress(6) -- baro
                     isBaroMode = true
@@ -575,7 +568,7 @@ local function loadKIOWAUI()
         -- are on the smaller sizes, while the less used things
         -- are available on the larger sizes, and then can be
         -- re-resized afer their use.
-        SizeButton:addMouseDownCallback(
+        ResizeButton:addMouseDownCallback(
             function(self)
                 -- resizes the gui
                 -- 0 compact;1 full;3 expanded
@@ -587,7 +580,7 @@ local function loadKIOWAUI()
                     -- click function. A left click makes it smaller. A
                     -- Right click makes it bigger. A middle click (if
                     -- the user chooses to do so), makes it full sized.
-                    SizeButton:setText("RESIZE ▶")
+                    ResizeButton:setText("RESIZE ▶")
                     window:setBounds(
                         config.windowPosition.x,
                         config.windowPosition.y,
@@ -596,7 +589,7 @@ local function loadKIOWAUI()
                     )
                     windowSize = 1
                 elseif windowSize == 1 then -- if full, change to expanded
-                    SizeButton:setText("◀ RESIZE")
+                    ResizeButton:setText("◀ RESIZE")
                     window:setBounds(
                         config.windowPosition.x,
                         config.windowPosition.y,
@@ -605,7 +598,7 @@ local function loadKIOWAUI()
                     )
                     windowSize = 2
                 else -- if expanded, change to compact
-                    SizeButton:setText("RESIZE ▶")
+                    ResizeButton:setText("RESIZE ▶")
                     window:setBounds(
                         config.windowPosition.x,
                         config.windowPosition.y,
@@ -645,23 +638,23 @@ local function loadKIOWAUI()
 
 
         local turnAmount = 0
-        local turnSensitivity = config.turnSensitivity
-        TurnButton:addMouseWheelCallback(
+        local turnStep = config.turnStep
+        AdjustHeadingButton:addMouseWheelCallback(
             function(self, x, y, clicks)
                 if clicks == 1 then -- scroll up
-                    turnAmount = turnAmount + turnSensitivity
+                    turnAmount = turnAmount + turnStep
                 end
                 if clicks == -1 then -- scroll down
-                    turnAmount = turnAmount - turnSensitivity
+                    turnAmount = turnAmount - turnStep
                 end
                 -- dont let turn go neg
                 if turnAmount < 0 then turnAmount = 0 end
                 if turnAmount > 359 then turnAmount = 359 end
                 local turnText = "±" .. turnAmount .. "° Turn"
-                TurnButton:setText(turnText)
+                AdjustHeadingButton:setText(turnText)
             end
         )
-        TurnButton:addMouseDownCallback(
+        AdjustHeadingButton:addMouseDownCallback(
             function(self, x, y, button)
                 if button == 1 then -- left click, turn left
                     local commandTurn = turnAmount * -1
@@ -674,7 +667,7 @@ local function loadKIOWAUI()
                 if button == 2 then -- middle mouse click, reset turn amount, stop turn
                     turnAmount = 0
                     local turnText = "±" .. turnAmount .. "° Turn"
-                    TurnButton:setText(turnText)
+                    AdjustHeadingButton:setText(turnText)
                     Export.GetDevice(18):performClickableAction(3103, 0) -- this does not work
                 end
             end
@@ -682,37 +675,47 @@ local function loadKIOWAUI()
 
         -- TODO Add CFIT warnings
         local altitudeAmount = 0
-        local altitudeSensitivity = config.altitudeSensitivity
-        AltChangeButton:addMouseWheelCallback(
+        local altitudeStep = config.altitudeStep
+        AltRelButton:addMouseWheelCallback(
             function(self, x, y, clicks)
                 if clicks == 1 then -- scroll up
-                    altitudeAmount = altitudeAmount + altitudeSensitivity
+                    altitudeAmount = altitudeAmount + altitudeStep
                 end
                 if clicks == -1 then -- scroll down
-                    altitudeAmount = altitudeAmount - altitudeSensitivity
+                    altitudeAmount = altitudeAmount - altitudeStep
                 end
                 -- dont let alt go neg
                 if altitudeAmount < 0 then altitudeAmount = 0 end
                 if altitudeAmount > 9999 then altitudeAmount = 9999 end -- 9999 instead of 10000 because of button width
                 local altText = "±" .. altitudeAmount .. " ALT"
-                AltChangeButton:setText(altText)
+                AltRelButton:setText(altText)
+                --checkCfitcolor() -- just turns the collor of the button red. do not prevent pressing
             end
         )
-        AltChangeButton:addMouseDownCallback(
+        AltRelButton:addMouseDownCallback(
             function(self, x, y, button)
-                if button == 1 then -- left click, turn left
-                    local commandAlt = altitudeAmount * -1
+                if button == 1 then -- left click, increase alt
+                    local commandAlt = altitudeAmount * 1
                     Export.GetDevice(18):performClickableAction(3011, commandAlt)
                 end
-                if button == 3 then -- right click, turn right
-                    local commandAlt = altitudeAmount * 1
+                if button == 3 then -- right click, decrease alt
+                    local commandAlt = altitudeAmount * -1
+                    --[[ This works, but prevents the player from being at a reasonable
+                        altitude, pressing increase multiple times, and then pressing down at all.
+                    if not checkCfitcolor() then -- if CFIT was not true
+                        Export.GetDevice(18):performClickableAction(3011, commandAlt)
+                    else
+                        -- cfit was detected, say no can do
+                        sound.playPreview(playList[math.random(#playList)])
+                    end
+--]]
                     Export.GetDevice(18):performClickableAction(3011, commandAlt)
                 end
                 if button == 2 then -- middle mouse click, reset turn amount, stop turn
                     altitudeAmount = 0
                     local altText = "±" .. altitudeAmount .. " ALT"
-                    AltChangeButton:setText(altText)
-                    Export.GetDevice(18):performClickableAction(3011, 0)
+                    AltRelButton:setText(altText)
+                    --Export.GetDevice(18):performClickableAction(3011, 0) -- no workie
                 end
             end
         )
@@ -720,15 +723,15 @@ local function loadKIOWAUI()
 
         -- WIP
         local knotsAmount = 0
-        local knotsSensitivity = config.knotsSensitivity
+        local knotsStep = config.knotsStep
         KnotsRelButton:addMouseWheelCallback(
             function(self, x, y, clicks)
                 --local knotsAmount
                 if clicks == 1 then -- scroll up
-                    knotsAmount = knotsAmount + knotsSensitivity
+                    knotsAmount = knotsAmount + knotsStep
                 end
                 if clicks == -1 then -- scroll down
-                    knotsAmount = knotsAmount - knotsSensitivity
+                    knotsAmount = knotsAmount - knotsStep
                 end
                 -- dont let kts go neg
                 if knotsAmount < 0 then knotsAmount = 0 end
@@ -739,42 +742,43 @@ local function loadKIOWAUI()
         )
         KnotsRelButton:addMouseDownCallback(
             function(self, x, y, button)
-                if button == 3 then -- left click, drift left
+                if button == 3 then -- left click, increase
                     local commandKts = knotsAmount * -1
                     Export.GetDevice(18):performClickableAction(3009, commandKts)
                 end
-                if button == 1 then -- right click, drift right
+                if button == 1 then -- right click, decrease
                     local commandKts = knotsAmount * 1
                     Export.GetDevice(18):performClickableAction(3009, commandKts)
                 end
-                if button == 2 then -- middle mouse click, reset drift ammount
+                if button == 2 then -- middle mouse click, reset
                     knotsAmount = 0
                     local ktsText = "±" .. knotsAmount .. " Kts"
                     KnotsRelButton:setText(ktsText)
-                    Export.GetDevice(18):performClickableAction(3010, 0) -- maybe dont do this...
+                    --Export.GetDevice(18):performClickableAction(3010, 0) -- does not work
                 end
             end
         )
 
         -- WIP
         local driftAmmount = 0
-        local driftSensitivity = config.driftSensitivity
-        DriftHoverButton:addMouseWheelCallback(
+        local driftStep = config.driftStep
+        DriftButton:addMouseWheelCallback(
             function(self, x, y, clicks)
                 --local driftAmmount
                 if clicks == 1 then -- scroll up
-                    driftAmmount = driftAmmount + driftSensitivity
+                    driftAmmount = driftAmmount + driftStep
                 end
                 if clicks == -1 then -- scroll down
-                    driftAmmount = driftAmmount - driftSensitivity
+                    driftAmmount = driftAmmount - driftStep
                 end
                 -- dont let drift go neg
                 if driftAmmount < 0 then driftAmmount = 0 end
-                local driftText = "Drift (±" .. driftAmmount .. ")"
-                DriftHoverButton:setText(driftText)
+                if driftAmmount > 5 then driftAmmount = 5 end
+                local driftText = "±" .. driftAmmount .. " Drift"
+                DriftButton:setText(driftText)
             end
         )
-        DriftHoverButton:addMouseDownCallback(
+        DriftButton:addMouseDownCallback(
             function(self, x, y, button)
                 if button == 1 then -- left click, drift left
                     local commandDrift = driftAmmount * -1
@@ -786,8 +790,8 @@ local function loadKIOWAUI()
                 end
                 if button == 2 then -- middle mouse click, reset drift ammount
                     driftAmmount = 0
-                    local driftText = "Drift (±" .. driftAmmount .. ")"
-                    DriftHoverButton:setText(driftText)
+                    local driftText = "±" .. driftAmmount .. " Drift"
+                    DriftButton:setText(driftText)
                     Export.GetDevice(18):performClickableAction(3107, -20)
                     Export.GetDevice(18):performClickableAction(3107, 5)
                 end
@@ -798,9 +802,11 @@ local function loadKIOWAUI()
                 AIpress(59)
             end
         )
+        -- By DCS default, if increasing altitude when hover is
+        -- pressed, Barundus will hover, but continue to increase altitude
         HoverButton:addMouseDownCallback(
             function(self)
-                AIpress(8)
+                AIpress(8) -- hover
             end
         )
         -- Due to a DCS-ism, when pressing land from forward flight, the command is not
@@ -811,16 +817,16 @@ local function loadKIOWAUI()
                 AIpress(60) -- land
             end
         )
-        -- MMS to heading
+
         Hdg2MmsButton:addMouseDownCallback(
             function(self)
-                AIpress(102)
+                AIpress(102) -- MMS to heading
             end
         )
-        -- hud toggle
+
         HudButton:addMouseDownCallback(
             function(self)
-                AIpress(104)
+                AIpress(104) -- hud toggle
             end
         )
         -- Toggles through all of the turn rates available
@@ -842,6 +848,7 @@ local function loadKIOWAUI()
             end
         )
 
+        -- Toggles the guidance mode
         RouteButton:addMouseDownCallback(
             function(self, x, y, button)
                 if button == 2 then -- middle mouse click
@@ -859,23 +866,8 @@ local function loadKIOWAUI()
                 end
             end
         )
-        --[[
-        OnoffButton:addMouseDownCallback( --testing
-            function(self, x, y, button)
-                if button == 1 then
-                    logFile:write("Button01 pressed|") -- left click
-                elseif button == 2 then
-                    logFile:write("Button02 pressed|") -- middle click
-                elseif button == 3 then
-                    logFile:write("Button03 pressed|") -- right click
-                else
-                    logFile:write("Buttonelse pressed|")
-                end
-            end
-        )
-            --]]
 
-        HideButton:addMouseDownCallback( --testing
+        HideButton:addMouseDownCallback(
             function(self)
                 hide()
                 isHidden = true
@@ -883,16 +875,15 @@ local function loadKIOWAUI()
         )
         -- Turns the aircraft in the direction that
         -- the player is facing. Has a hotkey too
-        Hdg2FaceButton:addMouseDownCallback( --testing
+        Hdg2FaceButton:addMouseDownCallback(
             function(self)
                 Hdg2FaceButtonClicked()
             end
         )
 
-        OnoffButton:addMouseDownCallback( -- original
+        OnoffButton:addMouseDownCallback(
             function(self)
-                --sound.playPreview(fullPath) -- testing
-                AIpress(7)
+                AIpress(7) -- AI on/off
             end
         )
 
@@ -905,7 +896,6 @@ local function loadKIOWAUI()
                 if button == 2 then
                     cfitOverride = true
                 end
-
 
                 local alt = { "10 ft", "20 ft", "30 ft", "40 ft", "50 ft", "60 ft",
                     "70 ft", "80 ft", "90 ft", "100 ft", "200 ft", "300 ft", "400 ft", "500 ft", "600 ft",
@@ -922,10 +912,10 @@ local function loadKIOWAUI()
                         -- if in RadAlt mode, press the button
                         -- if in Baro mode, try to protect the pilot by checking if you can acutally
                         -- go that low.
-                        -- TODO find a way to give a notification
-                        AltitudeButton:setSkin(HudButtonSkin)
+                        AltitudeButton:setSkin(GrayButtonSkin)
                         if AltitudeMode:getText() == "BARO" then -- if baro mode is indicated
                             if config.avoidCFIT == true then     -- if the setting is enabled
+                                -- this uses its own cfit checker due to the override feature
                                 if cfitOverride == false then    -- if the player did not override the command
                                     -- strip the ' ft' from the altitude text so that it is just a number
                                     local commandAlt = alt[i]:gsub(' ft', '')
@@ -936,15 +926,16 @@ local function loadKIOWAUI()
                                         -- turn the button red
                                         AltitudeButton:setSkin(RedButtonSkin)
                                         -- put the sounds in a list
-                                        getSounds(dirPath)
+                                        --getSounds(dirPath)
                                         -- play a random sound from that list
                                         sound.playPreview(playList[math.random(#playList)])
+                                        log("KIO-WA sound played.")
                                         return
                                     end
                                 end
                             end
                         end
-                        -- press the button
+                        -- else, press the button
                         Export.GetDevice(18):performClickableAction(commandButton, 1)
                     end
                 end
@@ -994,7 +985,7 @@ local function loadKIOWAUI()
                     if shownAltitude == alt[1] then
                         AltitudeButton:setText(alt[#alt])
                     end
-                    checkCfitcolor() -- TODO
+                    checkCfitcolor()
                 end
             end
         )
@@ -1046,7 +1037,7 @@ local function loadKIOWAUI()
             end
         )
         --[[
-        -- Heading 2 face feature
+        -- Heading 2 face feature, removed in favor of adjust heading feature
         RelativeCrsButton:addMouseDownCallback(
             function(self)
                 TrackUpButtonClicked()
@@ -1177,7 +1168,7 @@ local function loadKIOWAUI()
         RouteButton:setText("RTE/POINT")
         TurnRateButton:setText("TURN RATE")
         AltitudeMode:setText("BARO/RAD")
-        SizeButton:setText("RESIZE")
+        ResizeButton:setText("RESIZE")
         TakeoffButton:setText("TAKEOFF")
         HoverButton:setText("HOVER")
         LandButton:setText("LAND")
@@ -1186,19 +1177,22 @@ local function loadKIOWAUI()
         HudButton:setText("HUD")
         OnoffButton:setText("AI PILOT")
         AltitudeButton:setText("10 ft")
-        KnotsButton:setText("10 kts") -- or KTS
-        KnotsRelButton:setText("KTS") -- RelativeCrsButton:setText("000° REL") -- 010° L or 010° R
+        KnotsButton:setText("10 kts")      -- or KTS
+        KnotsRelButton:setText("KTS  REL") -- RelativeCrsButton:setText("000° REL") -- 010° L or 010° R
         NorthTrackButton:setText("360° T")
 
-        AltChangeButton:setText("Alt")
-        --AltChangeButton:setOpacity(0.25)
+        AltRelButton:setText("ALT  REL")
+        --AltRelButton:setOpacity(0.25)
         OrbitButton:setText("◀ORBIT▶") -- TODO find new arrows. Maybe make them customizable
-        TurnButton:setText("TURN")
-        --TurnButton:setOpacity(0.25)
-        DriftHoverButton:setText("DRIFT")
-        --DriftHoverButton:setOpacity(0.25)
+        AdjustHeadingButton:setText("TURN REL")
+        --AdjustHeadingButton:setOpacity(0.25)
+        DriftButton:setText("DRIFT")
+        --DriftButton:setOpacity(0.25)
         HideButton:setText("HIDE")
         Hdg2FaceButton:setText("HDG2FACE")
+        -- you can put this somewhere else if you like, it is being done twice
+        -- make a playlist of the "nope" Barundus sounds
+        getSounds(dirPath)
     end
 
     local function detectPlayerAircraft()
@@ -1254,25 +1248,15 @@ local function loadKIOWAUI()
 
     function handler.onSimulationStop()
         aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
-        logFile:write("|onSimulationStop = " .. aircraft .. "|")
+        --logFile:write("|onSimulationStop = " .. aircraft .. "|")
         inMission = false
         hide() -- hides the app when returning to the main game menus
     end
 
-    --[[
-    function handler.onSimulationResume() --onSimulationPause is the opposite
-        detectPlayerAircraft()
-    end
---]]
     function handler.onPlayerChangeSlot() -- MP only
         detectPlayerAircraft()
     end
 
-    --[[
-    function handler.onShowBriefing()
-        detectPlayerAircraft()
-    end
---]]
     DCS.setUserCallbacks(handler)
 
     net.log("[KIO-WA] Loaded ...")
