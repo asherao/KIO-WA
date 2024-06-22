@@ -7,8 +7,7 @@
 --]]
 
 --[[ Future Feature Goals:
-    - Add "ok" sounds to column 5 commands
-    - Re-add stopturn feature that was lost in the relativeHeading feature
+    - Re-add stopturn feature that was lost in the relative Heading feature
     - Change the default hotkeys(?)
     - Make a minimum window size during resize
     - research the possibility of using hardware buttons to toggle the GUI
@@ -18,11 +17,14 @@
     issue to solve.
     - Remove the margin gap at the top and sides of groups of buttons/controls
     - Make a error catch for there not being audio files
-    - Consider making the extra sounds configurable via config file
+    - Add sounds for ack relative commands
+    - Consider making the extra sound volume configurable via config file
+    - consider config option "UseExtraSounds" for barundus' ack
 --]]
 
 --[[ Bugs:
-    - Commanding 110 kts used to result in "ok, lets do a hover check" (which is 3061!!! hidden feature?!?!?)
+    - Commanding 110 kts resulted in "ok, lets do a hover check" (which is 3061!!! hidden feature?!?!?)
+    - CFIT "no can do" sounds are not playing on some DCS configurations
 --]]
 
 --[[ Change Notes:
@@ -44,10 +46,11 @@
     - Buttons moved around
     - Removed old relative heading feature
     - Added new relative heading feature
+    - Enabled relative altitude button
+    - Enabled relative knots button
     - Enabled Drift button
-    - Enabled relative altitude button
-    - Enabled relative altitude button
     - Added config options for relative button step sizes
+    - Updated Readme
 --]]
 
 --[[ Pretty pictures:
@@ -93,6 +96,7 @@ local function loadKIOWAUI()
     local Skin = require("Skin")
     local DialogLoader = require("DialogLoader")
     local Tools = require("tools")
+    --local sound = require("sound")
 
     -- KIO-WA resources
     local window = nil
@@ -718,9 +722,6 @@ local function loadKIOWAUI()
                 end
             end
         )
-
-
-        -- WIP
         local knotsAmount = 0
         local knotsStep = config.knotsStep
         KnotsRelButton:addMouseWheelCallback(
@@ -758,7 +759,6 @@ local function loadKIOWAUI()
             end
         )
 
-        -- WIP
         local driftAmmount = 0
         local driftStep = config.driftStep
         DriftButton:addMouseWheelCallback(
@@ -1129,7 +1129,7 @@ local function loadKIOWAUI()
             function(self)
             end
         )
-            --]]
+--]]
         -- Hotkey for the heading 2 face feature. can
         -- can be changed by user in the config file
         window:addHotKeyCallback(
@@ -1233,23 +1233,16 @@ local function loadKIOWAUI()
         if aircraft == "OH58D" then
             isHidden = false
             show()
-            --OnoffButton:setText(aircraft)
-            --show()
-            logFile:write(aircraft)
         else
             isHidden = true
-            --OnoffButton:setText(aircraft)
-            --hide()
-            logFile:write(aircraft)
             hide()
         end
     end
 
     function handler.onSimulationStop()
         aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
-        --logFile:write("|onSimulationStop = " .. aircraft .. "|")
         inMission = false
-        hide() -- hides the app when returning to the main game menus
+        hide()                             -- hides the app when returning to the main game menus
     end
 
     function handler.onPlayerChangeSlot() -- MP only
