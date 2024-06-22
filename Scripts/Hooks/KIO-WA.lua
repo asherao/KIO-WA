@@ -20,11 +20,12 @@
     - Add sounds for ack relative commands
     - Consider making the extra sound volume configurable via config file
     - consider config option "UseExtraSounds" for barundus' ack
+    - Load sound playlist only once
+    - Commanding 3061 resultes in "ok, lets do a hover check" (hidden feature?!?!?)
 --]]
 
 --[[ Bugs:
-    - Commanding 110 kts resulted in "ok, lets do a hover check" (which is 3061!!! hidden feature?!?!?)
-    - CFIT "no can do" sounds are not playing on some DCS configurations
+    - CFIT "no can do" sounds do not play when launching dcs directly into a mission (DCS-ism?)
 --]]
 
 --[[ Change Notes:
@@ -96,7 +97,7 @@ local function loadKIOWAUI()
     local Skin = require("Skin")
     local DialogLoader = require("DialogLoader")
     local Tools = require("tools")
-    --local sound = require("sound")
+    local sound = require("sound")
 
     -- KIO-WA resources
     local window = nil
@@ -209,7 +210,7 @@ local function loadKIOWAUI()
         return v:match("^.+(%..+)$")
     end
 
-    local function getSounds(dirPath) -- reloads every time a song is requested
+    local function getSounds(dirPath)
         for file in lfs.dir(dirPath) do
             local fullPath = dirPath .. file
             if 'file' == lfs.attributes(fullPath).mode then
@@ -404,12 +405,12 @@ local function loadKIOWAUI()
                     if tonumber(commandAlt) / 3.281 < (Export.LoGetAltitudeAboveSeaLevel() - Export.LoGetAltitudeAboveGroundLevel()) then
                         -- if CFIT is detected, turn the button red
                         AltitudeButton:setSkin(RedButtonSkin)
-                        return true -- true if CFIT detected
+                        --return true -- true if CFIT detected
                     end
                 end
             end
 
-
+            --[[ Removed bc blocking altitude down changes
             -- check cfit color for relative altitude button
             AltRelButton:setSkin(GrayButtonSkin) -- turn the skin grey before the calculation. assumes no CFIT
             if config.avoidCFIT == true then     -- if the setting is enabled
@@ -424,6 +425,7 @@ local function loadKIOWAUI()
                     return true -- true if CFIT detected
                 end
             end
+--]]
         end
 
         -- This function gets the direction that the camera is facing, and then
@@ -692,7 +694,7 @@ local function loadKIOWAUI()
                 if altitudeAmount > 9999 then altitudeAmount = 9999 end -- 9999 instead of 10000 because of button width
                 local altText = "±" .. altitudeAmount .. " ALT"
                 AltRelButton:setText(altText)
-                --checkCfitcolor() -- just turns the collor of the button red. do not prevent pressing
+                --checkCfitcolor() -- just turns the color of the button red. do not prevent pressing
             end
         )
         AltRelButton:addMouseDownCallback(
@@ -1176,16 +1178,16 @@ local function loadKIOWAUI()
         HudButton:setText("HUD")
         OnoffButton:setText("AI PILOT")
         AltitudeButton:setText("10 ft")
-        KnotsButton:setText("10 kts")      -- or KTS
-        KnotsRelButton:setText("KTS  REL") -- RelativeCrsButton:setText("000° REL") -- 010° L or 010° R
+        KnotsButton:setText("10 kts")    -- or KTS
+        KnotsRelButton:setText("±0 Kts") -- RelativeCrsButton:setText("000° REL") -- 010° L or 010° R
         NorthTrackButton:setText("360° T")
 
-        AltRelButton:setText("ALT  REL")
+        AltRelButton:setText("±0 ALT")
         --AltRelButton:setOpacity(0.25)
         OrbitButton:setText("◀ORBIT▶") -- TODO find new arrows. Maybe make them customizable
-        AdjustHeadingButton:setText("TURN REL")
+        AdjustHeadingButton:setText("±0° Turn")
         --AdjustHeadingButton:setOpacity(0.25)
-        DriftButton:setText("DRIFT")
+        DriftButton:setText("±0 Drift")
         --DriftButton:setOpacity(0.25)
         HideButton:setText("HIDE")
         Hdg2FaceButton:setText("HDG2FACE")
