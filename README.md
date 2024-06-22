@@ -1,7 +1,7 @@
 # Kiowa Integrated Overlay - Warrior Automatis
 
 KIO-WA is an in-game clickable command overlay for the DCS OH-58D Kiowa Warrior that can use with your mouse or point device. 
-It also frees up keybinds and HOTAS buttons. Download the most recent stable release here [Releases](https://github.com/asherao/KIO-WA/releases). Join the conversation on the [ED Forums](https://forum.dcs.world/topic/351441-kiowa-integrated-overlay-warrior-automatis-kio-wa).
+It also frees up keybinds and HOTAS buttons. Download the most recent stable release here at [Releases](https://github.com/asherao/KIO-WA/releases). Join the conversation on the [ED Forums](https://forum.dcs.world/topic/351441-kiowa-integrated-overlay-warrior-automatis-kio-wa).
 
 ![KIO-WA v0 6](https://github.com/asherao/KIO-WA/assets/15984377/173b5fad-8e5d-41ba-8f61-1e5d4b281dc8)
 
@@ -16,7 +16,7 @@ It also frees up keybinds and HOTAS buttons. Download the most recent stable rel
 **AI PILOT** - Toggles Barundus AI.<br>
 **HUD** - Toggles HUD.<br>
 **HIDE** - Hides the KIO-WA app.<br>
-**RESIZE** - Toggles KIO-WA betwwen Compact (3 columns), Full (4 columns), and Expanded (5 columns) sizes.<br>
+**RESIZE** - Toggles KIO-WA between Compact (3 columns), Full (4 columns), and Expanded (5 columns) sizes.<br>
 <br>
 **ORBIT** - Left click, orbit left. Right click, orbit right. Middle mouse click to cancel orbit.<br>
 **TAKEOFF** - Takeoff.<br>
@@ -46,7 +46,7 @@ After launching DCS with KIO-WA installed, a configuration file will be generate
 **Head2FaceOffset** - Defines the number of degrees Heading 2 Face is offset. Negative numbers are Left.<br>
 **hideOnLaunch** - When set to true, hides KIO-WA on launch.<br>
 **windowPosition** - Where KIO-WA is on the screen. X is right, Y is down. Consider adjusting for VR.<br>
-**avoidCFIT** - When set to true, Barundus will not listen to BARO Button commands that would result in Controled Flight Into Terrain. Can be overridden with middle mouse click on the Altitude Button.<br>
+**avoidCFIT** - When set to true, Barundus will not listen to BARO Button commands that would result in Controlled Flight Into Terrain. Can be overridden with middle mouse click on the Altitude Button.<br>
 **windowSize** - KIO-WA window size. Resist Adjusting.<br>
 **driftStep** - Number of relative drift units per scroll wheel action for Drift Button.<br>
 **turnStep** - Number of degrees per scroll wheel action for Relative Turn Button.<br>
