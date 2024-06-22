@@ -7,6 +7,7 @@
 --]]
 
 --[[ Future Feature Goals:
+    - Add "ok" sounds to column 5 commands
     - Re-add stopturn feature that was lost in the relativeHeading feature
     - Change the default hotkeys(?)
     - Make a minimum window size during resize
@@ -21,12 +22,10 @@
 --]]
 
 --[[ Bugs:
-    - Commanding 110 kts results in "ok, lets do a hover check" (which is 3061!!! hidden feature?!?!?)
-    - CFIT no can do sounds are not playing
+    - Commanding 110 kts used to result in "ok, lets do a hover check" (which is 3061!!! hidden feature?!?!?)
 --]]
 
 --[[ Change Notes:
-
     v0.5
     - Hide on Launch option is available via the config file
     - App window will no longer automatically re-show itself after game is resumed
