@@ -133,7 +133,6 @@ local function loadKIOWAUI()
     local row1 = 0
     local row2 = rowSpacing + row1
     local isBaroMode = false
-    local isRightMode = false
     local isRouteMode = false
     local windowSize = 1   -- 0 compact;1 full;3 expanded
     local turnRateMode = 2 -- 0 slow;1 medium;2 fast
@@ -885,6 +884,14 @@ local function loadKIOWAUI()
         OnoffButton:addMouseDownCallback(
             function(self)
                 AIpress(7) -- AI on/off
+                -- in DCS when the AI is turned on, it defaults to BARO mode
+                -- set the text to baro
+                -- call the altitude color formulas to color the buttons
+                -- unfortunately this happens on any press of the on/off button...
+                AIpress(6) -- baro
+                isBaroMode = true
+                AltitudeMode:setText("BARO")
+                checkCfitcolor() -- check for CFIT
             end
         )
 
