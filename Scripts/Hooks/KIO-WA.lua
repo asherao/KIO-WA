@@ -1254,11 +1254,11 @@ local function loadKIOWAUI()
         inMission = false
         hide()                             -- hides the app when returning to the main game menus
     end
-
+--[[
     function handler.onPlayerChangeSlot() -- MP only
         detectPlayerAircraft()
     end
-
+--]]
     DCS.setUserCallbacks(handler)
 
     net.log("[KIO-WA] Loaded ...")
