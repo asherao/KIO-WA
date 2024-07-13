@@ -38,7 +38,7 @@
     - Fixed a condition where when 000/360 was commanded, Barundus would set heading to MMS instead
     - If you set the app window to be too big or small, it will be juuust right on the next restart
 
-    v0.6 (WIP)
+    v0.6
     - Barundus will ignore CFIT (Controlled Flight Into Terrain) Baro altitude commands
     - Barundus will tell you that he does not agree with CFIT via audio
     - Altitude selection button will turn red if Barundus thinks it is a CFIT command
@@ -52,6 +52,9 @@
     - Enabled Drift button
     - Added config options for relative button step sizes
     - Updated Readme
+
+    v0.6.1
+    - Updated app show and hide conditions
 --]]
 
 --[[ Pretty pictures:
@@ -218,7 +221,7 @@ local function loadKIOWAUI()
                 end
             end
         end
-        log(dump(playList))
+        --log(dump(playList))
     end
 
     -- button resize is dsiabled due to early development complexity
@@ -270,20 +273,23 @@ local function loadKIOWAUI()
     end
 
     local function show()
-        if window == nil then
-            local status, err = pcall(createKIOWAUIWindow)
-            if not status then
-                net.log("[KIO-WA] Error creating window: " .. tostring(err))
+        -- only show the window in missions
+        if Export.LoGetModelTime() > 1 then
+            if window == nil then
+                local status, err = pcall(createKIOWAUIWindow)
+                if not status then
+                    net.log("[KIO-WA] Error creating window: " .. tostring(err))
+                end
             end
+
+            window:setVisible(true)
+            window:setSkin(windowDefaultSkin)
+            panel:setVisible(true)
+            window:setHasCursor(true)
+            window:setText(' ' .. 'KIO-WA by Bailey (' .. hotkey .. ')')
+
+            isHidden = false
         end
-
-        window:setVisible(true)
-        window:setSkin(windowDefaultSkin)
-        panel:setVisible(true)
-        window:setHasCursor(true)
-        window:setText(' ' .. 'KIO-WA by Bailey (' .. hotkey .. ')')
-
-        isHidden = false
     end
 
     local function hide()
@@ -870,7 +876,6 @@ local function loadKIOWAUI()
         HideButton:addMouseDownCallback(
             function(self)
                 hide()
-                isHidden = true
             end
         )
         -- Turns the aircraft in the direction that
@@ -937,7 +942,7 @@ local function loadKIOWAUI()
                                         --getSounds(dirPath)
                                         -- play a random sound from that list
                                         sound.playPreview(playList[math.random(#playList)])
-                                        log("KIO-WA sound played.")
+                                        --log("KIO-WA sound played.")
                                         return
                                     end
                                 end
@@ -1162,7 +1167,6 @@ local function loadKIOWAUI()
 
         if config.hideOnLaunch then
             hide()
-            isHidden = true
         end
 
         lfs.mkdir(lfs.writedir() .. [[Config\KIO-WA\]])
@@ -1208,10 +1212,8 @@ local function loadKIOWAUI()
         -- in the menus. when in a different aircraft it will dissapear.
         aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
         if aircraft == "OH58D" then
-            isHidden = false
             show()
         else
-            isHidden = true
             hide()
         end
     end
@@ -1237,13 +1239,11 @@ local function loadKIOWAUI()
 
     function handler.onMissionLoadEnd()
         inMission = true
-        setAllText()                       -- sets the default button text for the app
-        aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
+        setAllText()                             -- sets the default button text for the app
+        local aircraft = DCS.getPlayerUnitType() -- get the player's aircraft, KW is "OH58D"
         if aircraft == "OH58D" then
-            isHidden = false
             show()
         else
-            isHidden = true
             hide()
         end
     end
