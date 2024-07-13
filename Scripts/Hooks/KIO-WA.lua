@@ -54,6 +54,7 @@
     - Updated Readme
 
     v0.6.1
+    - Adjusted Barundus on/off logic to account for DCS-isms
     - Updated app show and hide conditions
 --]]
 
