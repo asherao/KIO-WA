@@ -275,22 +275,22 @@ local function loadKIOWAUI()
 
     local function show()
         -- only show the window in missions
-        if Export.LoGetModelTime() > 1 then
-            if window == nil then
-                local status, err = pcall(createKIOWAUIWindow)
-                if not status then
-                    net.log("[KIO-WA] Error creating window: " .. tostring(err))
-                end
+        --if Export.LoGetModelTime() > 1 then
+        if window == nil then
+            local status, err = pcall(createKIOWAUIWindow)
+            if not status then
+                net.log("[KIO-WA] Error creating window: " .. tostring(err))
             end
-
-            window:setVisible(true)
-            window:setSkin(windowDefaultSkin)
-            panel:setVisible(true)
-            window:setHasCursor(true)
-            window:setText(' ' .. 'KIO-WA by Bailey (' .. hotkey .. ')')
-
-            isHidden = false
         end
+
+        window:setVisible(true)
+        window:setSkin(windowDefaultSkin)
+        panel:setVisible(true)
+        window:setHasCursor(true)
+        window:setText(' ' .. 'KIO-WA by Bailey (' .. hotkey .. ')')
+
+        isHidden = false
+        --end
     end
 
     local function hide()
@@ -1254,11 +1254,17 @@ local function loadKIOWAUI()
         inMission = false
         hide()                             -- hides the app when returning to the main game menus
     end
---[[
-    function handler.onPlayerChangeSlot() -- MP only
-        detectPlayerAircraft()
+
+    -- show the app when the player gets into the kiowa
+    -- https://wiki.hoggitworld.com/view/DCS_hook_onPlayerChangeSlot
+    -- https://wiki.hoggitworld.com/view/DCS_func_get_player_info
+    function handler.onPlayerChangeSlot(playerID) -- MP only
+        local playerName = net.get_player_info(playerID, 'name')
+        if playerName == Export.LoGetPilotName() then
+            detectPlayerAircraft()
+        end
     end
---]]
+
     DCS.setUserCallbacks(handler)
 
     net.log("[KIO-WA] Loaded ...")
